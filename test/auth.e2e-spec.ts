@@ -1,0 +1,451 @@
+import { INestApplication } from '@nestjs/common';
+import request from 'supertest';
+import { UsersTestManager } from './e2e/helpers/users-test-manager';
+import { initSettings } from './e2e/helpers/testing-app-init';
+import { deleteAllData } from './e2e/helpers/delete-all-data';
+import { mockedRandomServiceReturnedUUId } from './mock/random-service-mock';
+
+describe('Authorization flow (e2e) tests', () => {
+  let app: INestApplication;
+  let userTestManger: UsersTestManager;
+
+  afterAll(async () => {
+    await app.close();
+  });
+  const defaults = {
+    login: 'newLogin',
+    email: 'newEmail@mail.ru',
+    password: 'newPassword',
+    newPassword: 'newNewPassword',
+  };
+  const loginPath = '/auth/login';
+  const registrationPath = '/auth/registration';
+  const regConfPath = '/auth/registration-confirmation';
+  const regEmailResPath = '/auth/registration-email-resending';
+  const passRecoveryPath = '/auth/password-recovery';
+  const newPassPath = '/auth/new-password';
+  const mePath = '/auth/me';
+
+  describe('(/auth/login) Login e2e tests', () => {
+    beforeEach(async () => {
+      // const result = await initSettings((moduleBuilder) =>
+      //   moduleBuilder.overrideProvider(JwtService).useValue(
+      //     new JwtService({
+      //       secret: 'secret_key',
+      //       signOptions: { expiresIn: '1m' },
+      //     }),
+      //   ),
+      // );
+      const result = await initSettings();
+      app = result.app;
+      userTestManger = result.userTestManger;
+    });
+    afterEach(async () => {
+      await deleteAllData(app);
+      jest.restoreAllMocks();
+    });
+
+    it('(200) ✅ Should login user with correct credentials', async () => {
+      await userTestManger.createUserByRegistration(
+        defaults.login,
+        defaults.password,
+        defaults.email,
+      );
+      const response = await request(app.getHttpServer())
+        .post(loginPath)
+        .send({
+          loginOrEmail: defaults.login,
+          password: defaults.password,
+        })
+        .expect(200);
+      expect(response.body.accessToken).toBeDefined();
+      expect(response.body.accessToken).toEqual(expect.any(String));
+    });
+    it('(400) ❌ Shouldn`t login user with invalid login', async () => {
+      await userTestManger.createUserByRegistration(
+        defaults.login,
+        defaults.password,
+        defaults.email,
+      );
+      const invalidLogin = true;
+      const response = await request(app.getHttpServer())
+        .post(loginPath)
+        .send({
+          loginOrEmail: invalidLogin,
+          password: defaults.password,
+        })
+        .expect(400);
+      expect(response.body.errorsMessages[0].field).toBe('loginOrEmail');
+    });
+    it('(400) ❌ Shouldn`t login user with invalid email and password', async () => {
+      await userTestManger.createUserByRegistration(
+        defaults.login,
+        defaults.password,
+        defaults.email,
+      );
+      const invalidEmail = true;
+      const invalidPassword = 4;
+      const response = await request(app.getHttpServer())
+        .post(loginPath)
+        .send({
+          loginOrEmail: invalidEmail,
+          password: invalidPassword,
+        })
+        .expect(400);
+      expect(response.body.errorsMessages.length).toBe(2);
+      expect(response.body.errorsMessages[0].field).toBe('loginOrEmail');
+      expect(response.body.errorsMessages[1].field).toBe('password');
+    });
+    it('(401) ❌ Shouldn`t login user with incorrect login', async () => {
+      await userTestManger.createUserByRegistration(
+        defaults.login,
+        defaults.password,
+        defaults.email,
+      );
+      const incorrectLogin = 'incorrectLogin';
+      await request(app.getHttpServer())
+        .post(loginPath)
+        .send({
+          loginOrEmail: incorrectLogin,
+          password: defaults.password,
+        })
+        .expect(401);
+    });
+    it('(401) ❌ Shouldn`t login user with incorrect password', async () => {
+      await userTestManger.createUserByRegistration(
+        defaults.login,
+        defaults.password,
+        defaults.email,
+      );
+      const incorrectPass = 'incorrectPassword';
+      await request(app.getHttpServer())
+        .post(loginPath)
+        .send({
+          loginOrEmail: defaults.login,
+          password: incorrectPass,
+        })
+        .expect(401);
+    });
+  });
+
+  describe('(/auth/registration) Registration e2e tests', () => {
+    beforeEach(async () => {
+      const result = await initSettings();
+      app = result.app;
+      userTestManger = result.userTestManger;
+    });
+    afterEach(async () => {
+      await deleteAllData(app);
+      jest.restoreAllMocks();
+    });
+
+    it('(200) ✅ Should registrate user with correct credentials', async () => {
+      await request(app.getHttpServer())
+        .post(registrationPath)
+        .send({
+          login: defaults.login,
+          email: defaults.email,
+          password: defaults.password,
+        })
+        .expect(204);
+    });
+    it('(400) ❌ Shouldn`t registrate user with invalid login', async () => {
+      const invalidLogin = true;
+      const response = await request(app.getHttpServer())
+        .post(registrationPath)
+        .send({
+          login: invalidLogin,
+          email: defaults.email,
+          password: defaults.password,
+        })
+        .expect(400);
+      expect(response.body.errorsMessages[0].field).toBe('login');
+    });
+    it('(400) ❌ Shouldn`t registrate user with invalid email and password', async () => {
+      await userTestManger.createUserByRegistration(
+        defaults.login,
+        defaults.password,
+        defaults.email,
+      );
+      const invalidEmail = true;
+      const invalidPassword = 4;
+      const response = await request(app.getHttpServer())
+        .post(registrationPath)
+        .send({
+          login: defaults.login,
+          email: invalidEmail,
+          password: invalidPassword,
+        })
+        .expect(400);
+      expect(response.body.errorsMessages.length).toBe(2);
+      expect(response.body.errorsMessages[0].field).toBe('email');
+      expect(response.body.errorsMessages[1].field).toBe('password');
+    });
+  });
+
+  describe('(/auth/registration-confirmation) Registration-confirmation e2e tests', () => {
+    beforeEach(async () => {
+      const result = await initSettings();
+      app = result.app;
+      userTestManger = result.userTestManger;
+    });
+    afterEach(async () => {
+      await deleteAllData(app);
+    });
+
+    it('(200) ✅ Should confirm user with correct input', async () => {
+      const registeredUser = await userTestManger.createUserByRegistration();
+
+      await request(app.getHttpServer())
+        .post(regConfPath)
+        .send({
+          code: registeredUser.emailConfirmation.confirmationCode,
+        })
+        .expect(204);
+
+      const confirmedUser = await userTestManger.findUserById(
+        registeredUser._id.toString(),
+      );
+      expect(confirmedUser).not.toBeNull();
+      expect(confirmedUser?.emailConfirmation.isConfirmed).toBeTruthy();
+    });
+    it('(400) ❌ Shouldn`t confirm user with invalid conf code', async () => {
+      const invalidConfCode = true;
+      const response = await request(app.getHttpServer())
+        .post(regConfPath)
+        .send({
+          code: invalidConfCode,
+        })
+        .expect(400);
+      expect(response.body.errorsMessages[0].field).toBe('code');
+    });
+    it('(400) ❌ Shouldn`t confirm already confirmed user', async () => {
+      const registeredUser = await userTestManger.createUserBySA();
+      console.log(registeredUser);
+      const response = await request(app.getHttpServer())
+        .post(regConfPath)
+        .send({
+          code: registeredUser.emailConfirmation.confirmationCode,
+        })
+        .expect(400);
+      expect(response.body.errorsMessages[0].field).toBe('code');
+    });
+  });
+
+  describe('(/auth/registration-email-resending) Registration email resending e2e tests', () => {
+    beforeEach(async () => {
+      const result = await initSettings();
+      app = result.app;
+      userTestManger = result.userTestManger;
+    });
+    afterEach(async () => {
+      await deleteAllData(app);
+      jest.restoreAllMocks();
+    });
+
+    it('(204) ✅ Should send new code to user with correct credentials', async () => {
+      await userTestManger.createUserByRegistration();
+      await request(app.getHttpServer())
+        .post(regEmailResPath)
+        .send({
+          email: defaults.email,
+        })
+        .expect(204);
+    });
+    it('(400) ❌ Shouldn`t send email to user with invalid email', async () => {
+      const invalidLogin = true;
+      const response = await request(app.getHttpServer())
+        .post(regEmailResPath)
+        .send({
+          email: invalidLogin,
+        })
+        .expect(400);
+      expect(response.body.errorsMessages[0].field).toBe('email');
+    });
+    it('(400) ❌ Shouldn`t send email to user with unexisting email', async () => {
+      const unexistingEmail = 'someEmail@mail.ru';
+      const response = await request(app.getHttpServer())
+        .post(regEmailResPath)
+        .send({
+          email: unexistingEmail,
+        })
+        .expect(400);
+      expect(response.body.errorsMessages[0].field).toBe('email');
+    });
+    it('(400) ❌ Shouldn`t send email to already confirmed user ', async () => {
+      const users = await userTestManger.createUsersBySA(1);
+      console.log(users);
+      const response = await request(app.getHttpServer())
+        .post(regEmailResPath)
+        .send({
+          email: users[0].email,
+        })
+        .expect(400);
+      expect(response.body.errorsMessages[0].field).toBe('email');
+    });
+  });
+
+  describe('(/auth/password-recovery) password recovery e2e tests', () => {
+    beforeEach(async () => {
+      const result = await initSettings();
+      app = result.app;
+      userTestManger = result.userTestManger;
+    });
+    afterEach(async () => {
+      await deleteAllData(app);
+      jest.restoreAllMocks();
+    });
+
+    it('(204) ✅ Should send email to user for new password', async () => {
+      const registeredUser = await userTestManger.createUserByRegistration(
+        defaults.login,
+        defaults.password,
+        defaults.email,
+      );
+
+      request(app.getHttpServer())
+        .post(passRecoveryPath)
+        .send({
+          email: registeredUser.email,
+        })
+        .expect(204);
+    });
+    it('(400) ❌ Shouldn`t send email to user with invalid email', async () => {
+      await userTestManger.createUserByRegistration(
+        defaults.login,
+        defaults.password,
+        defaults.email,
+      );
+
+      const invalidEmail = true;
+      const response = await request(app.getHttpServer())
+        .post(passRecoveryPath)
+        .send({
+          email: invalidEmail,
+        })
+        .expect(400);
+      expect(response.body.errorsMessages[0].field).toBe('email');
+    });
+    it('(204) ❌ Shouldn`t send email to user with unexisting email', async () => {
+      await userTestManger.createUserByRegistration(
+        defaults.login,
+        defaults.password,
+        defaults.email,
+      );
+
+      const invalidEmail = 'anotherUnexistingEmail@mail.ru';
+      await request(app.getHttpServer())
+        .post(passRecoveryPath)
+        .send({
+          email: invalidEmail,
+        })
+        .expect(204);
+    });
+  });
+
+  describe('(/auth/new-password) new password e2e tests', () => {
+    beforeEach(async () => {
+      const result = await initSettings();
+      app = result.app;
+      userTestManger = result.userTestManger;
+    });
+    afterEach(async () => {
+      await deleteAllData(app);
+      jest.restoreAllMocks();
+    });
+
+    it('(204) ✅ Should send email to user for new password', async () => {
+      const registeredUser = await userTestManger.createUserByRegistration(
+        defaults.login,
+        defaults.password,
+        defaults.email,
+      );
+      const user =
+        await userTestManger.setPassRecoveryCodeForUser(registeredUser);
+      request(app.getHttpServer())
+        .post(newPassPath)
+        .send({
+          newPassword: defaults.newPassword,
+          recoveryCode: user!.passwordRecovery.recoveryCode,
+        })
+        .expect(204);
+    });
+    it('(400) ❌ Shouldn`t send email to user with invalid new password', async () => {
+      const invalidPassword = true
+      const registeredUser = await userTestManger.createUserByRegistration(
+        defaults.login,
+        defaults.password,
+        defaults.email,
+      );
+      const user = await userTestManger.setPassRecoveryCodeForUser(registeredUser);
+      const response = await request(app.getHttpServer())
+        .post(newPassPath)
+        .send({
+          newPassword: invalidPassword,
+          recoveryCode: user!.passwordRecovery.recoveryCode,
+        })
+        .expect(400);
+      expect(response.body.errorsMessages[0].field).toBe('newPassword');
+    });
+    it('(400) ❌ Shouldn`t send email to user with invalid recovery code', async () => {
+      const invalidCode = mockedRandomServiceReturnedUUId
+      const registeredUser = await userTestManger.createUserByRegistration(
+        defaults.login,
+        defaults.password,
+        defaults.email,
+      );
+      await userTestManger.setPassRecoveryCodeForUser(registeredUser);
+      const response = await request(app.getHttpServer())
+        .post(newPassPath)
+        .send({
+          newPassword: defaults.newPassword,
+          recoveryCode: invalidCode,
+        })
+        .expect(400);
+      expect(response.body.errorsMessages[0].field).toBe('recoveryCode');
+    });
+  });
+
+  describe('(/auth/me) me e2e tests', () => {
+    beforeEach(async () => {
+      const result = await initSettings();
+      app = result.app;
+      userTestManger = result.userTestManger;
+    });
+    afterEach(async () => {
+      await deleteAllData(app);
+      jest.restoreAllMocks();
+    });
+
+    it('(200) ✅ Should get info about user with correct input', async () => {
+      await userTestManger.createUserByRegistration(
+        defaults.login,
+        defaults.password,
+        defaults.email,
+      );
+      const {accessToken} = await userTestManger.createAccessTokenForCurrentUser(defaults.login, defaults.password)
+
+      const response = await request(app.getHttpServer())
+        .get(mePath)
+        .set('Authorization', "Bearer " + accessToken)
+        .expect(200);
+      expect(response.body.email).toBe(defaults.email);
+      expect(response.body.login).toBe(defaults.login);
+      expect(response.body.userId).toEqual(expect.any(String));
+    });
+    it('(401) ❌ Shouldn`t get info about user with incorrect token', async () => {
+      await userTestManger.createUserByRegistration(
+        defaults.login,
+        defaults.password,
+        defaults.email,
+      );
+      await userTestManger.createAccessTokenForCurrentUser(defaults.login, defaults.password)
+      const invalidToken = "invalidToken"
+      await request(app.getHttpServer())
+        .get(mePath)
+        .set('Authorization', "Bearer " + invalidToken)
+        .expect(401);
+
+    });
+  });
+});
