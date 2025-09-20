@@ -1,41 +1,55 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import {Request } from 'express';
+import {
+  CanActivate,
+  ExecutionContext,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
+import { Request } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { UserContextDto } from '../dto/user-context.dto';
 import { DomainException } from '../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../core/exceptions/domain-exception-codes';
-
+import { ACCESS_TOKEN_INJECT_TOKEN } from '../../constants/jwt-tokens-inject-constants';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
-  constructor(private jwtService: JwtService) {}
+  constructor(
+    @Inject(ACCESS_TOKEN_INJECT_TOKEN)
+    private jwtService: JwtService,
+  ) {}
 
-  async canActivate(
-    context: ExecutionContext,
-  ): Promise<boolean> {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();
     if (!request.headers.authorization) {
-      return false;
+      throw new DomainException({
+        code: DomainExceptionCode.Unauthorized,
+        message: "unauthorized",
+        field: "None"
+      });
     }
     const authorizationString = request.headers.authorization;
-    const [authType, accessToken] = authorizationString.split(" ");
-    if (authType !== "Bearer") {
-      return false
+    const [authType, accessToken] = authorizationString.split(' ');
+    if (authType !== 'Bearer') {
+      throw new DomainException({
+        code: DomainExceptionCode.Unauthorized,
+        message: "unauthorized",
+        field: "None"
+      });
     }
     try {
       this.jwtService.verify(accessToken);
     } catch (e) {
       throw new DomainException({
         code: DomainExceptionCode.Unauthorized,
-        message:"unauthorized",
-        field: "none"})
+        message: "unauthorized",
+        field: "None"
+      });
 
     }
-    const dataFromJWT =  this.jwtService.decode(accessToken);
+    const dataFromJWT = this.jwtService.decode(accessToken);
     request.user = {
       userId: dataFromJWT.userId,
     } as UserContextDto;
-
     return true;
   }
 }

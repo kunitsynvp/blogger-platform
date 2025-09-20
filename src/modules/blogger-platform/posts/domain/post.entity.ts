@@ -14,7 +14,7 @@ export class Post {
   @Prop({
     type: String,
     required: true,
-    minlength: postDBConstraints.maxTitleLength,
+    minlength: postDBConstraints.minTitleLength,
     maxlength: postDBConstraints.maxTitleLength })
   title: string;
   @Prop({

@@ -48,7 +48,7 @@ export class UsersQueryRepository {
       items,
     });
   }
-  async findUserByIdOrNotFoundFail(id: string): Promise<UsersViewDto> {
+  async findByIdOrFail(id: string): Promise<UsersViewDto> {
     const foundUser = await this.userModel.findById(id)
 
     if(!foundUser) {

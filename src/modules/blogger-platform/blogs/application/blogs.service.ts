@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Blog, BlogDocument} from '../domain/blog.entity';
+import type { BlogModelType } from '../domain/blog.entity';
+import { Blog } from '../domain/blog.entity';
 import { BlogsRepository } from '../infrastructure/blogs.repository';
 import { CreateBlogInputDto } from '../api/input-dto/blogs-create-dto';
 import { CreateBlogDomainDto } from '../domain/dto/create-blog-domain-dto';
 import { UpdateBlogInputDto } from '../api/input-dto/blogs-update-dto';
 import { UpdateBlogDomainDto } from '../domain/dto/update-blog-domain-dto';
-import type { BlogModelType } from '../domain/blog.entity';
 
 @Injectable()
 export class BlogsService {
@@ -15,13 +15,8 @@ export class BlogsService {
     private blogsRepository: BlogsRepository,
   ) {}
 
-  async findBlogsById(id: string): Promise<BlogDocument> {
-    return this.blogsRepository.findBlogsByIdOrFail(id);
-  }
-  async createBlog(
-    dto: CreateBlogInputDto
-  ): Promise<string> {
-    const domainDto = new CreateBlogDomainDto()
+  async createBlog(dto: CreateBlogInputDto): Promise<string> {
+    const domainDto = new CreateBlogDomainDto();
     domainDto.name = dto.name;
     domainDto.description = dto.description;
     domainDto.websiteUrl = dto.websiteUrl;
@@ -32,11 +27,10 @@ export class BlogsService {
 
     return createdBlog._id.toString();
   }
-  async updateBlog(id: string, dto: UpdateBlogInputDto)
-    : Promise<void> {
-    const foundBlog = await this.blogsRepository.findBlogsByIdOrFail(id)
+  async updateBlog(id: string, dto: UpdateBlogInputDto): Promise<void> {
+    const foundBlog = await this.blogsRepository.findBlogsByIdOrFail(id);
 
-    const domainDto = new UpdateBlogDomainDto()
+    const domainDto = new UpdateBlogDomainDto();
     domainDto.name = dto.name;
     domainDto.description = dto.description;
     domainDto.websiteUrl = dto.websiteUrl;

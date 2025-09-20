@@ -13,20 +13,11 @@ import { DomainExceptionCode } from '../../../core/exceptions/domain-exception-c
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectModel(User.name)
-    private userModel: UserModelType,
+    @InjectModel(User.name) private userModel: UserModelType,
     private usersRepository: UsersRepository,
     private cryptoService: CryptoService,
   ) {}
 
-  async findUserById(id: string): Promise<UserDocument | null> {
-    return this.usersRepository.findByIdOrFail(id);
-  }
-  async findUserByLoginOrEmail(
-    loginOrEmail: string,
-  ): Promise<UserDocument | null> {
-    return this.usersRepository.findByLoginOrEmail(loginOrEmail);
-  }
   async createUser(
     dto: CreateUserInputDto,
     options?: CreateUserDomainOptions,
@@ -66,9 +57,6 @@ export class UsersService {
     return createdUser._id.toString();
   }
 
-  async deleteUser(id: string): Promise<void> {
-    return await this.usersRepository.deleteOrFail(id);
-  }
   private async checkLoginEmailUniqueness(
     login: string,
     email: string,

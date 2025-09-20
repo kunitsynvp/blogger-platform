@@ -4,8 +4,7 @@ import {
   ExceptionFilter,
   HttpStatus,
 } from '@nestjs/common';
-import { Request, Response } from 'express';
-
+import { Response } from 'express';
 
 //https://docs.nestjs.com/exception-filters#exception-filters-1
 //Все ошибки
@@ -15,6 +14,7 @@ export class AllHttpExceptionsFilter implements ExceptionFilter {
     //ctx нужен, чтобы получить request и response (express). Это из документации, делаем по аналогии
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
+    console.log(exception);
 
     //Если сработал этот фильтр, то пользователю улетит 500я ошибка
     const message = exception.message || 'Unknown exception occurred.';

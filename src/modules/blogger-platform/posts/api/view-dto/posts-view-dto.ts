@@ -11,31 +11,55 @@ export class PostsViewDto {
   createdAt: string;
   extendedLikesInfo: ExtendedLikesInfo;
 
-  static mapToView(post: PostDocument): PostsViewDto {
-    const dto = new PostsViewDto();
-    dto.id = post._id.toString();
-    dto.title = post.title;
-    dto.shortDescription = post.shortDescription;
-    dto.content = post.content;
-    dto.blogId = post.blogId.toString();
-    dto.blogName = post.blogName;
-    dto.createdAt = post.createdAt.toISOString();
+  static mapToView(post: PostDocument,dto:ExtendedLikesInfo): PostsViewDto {
+    const newDto = new PostsViewDto();
+    newDto.id = post._id.toString();
+    newDto.title = post.title;
+    newDto.shortDescription = post.shortDescription;
+    newDto.content = post.content;
+    newDto.blogId = post.blogId.toString();
+    newDto.blogName = post.blogName;
+    newDto.createdAt = post.createdAt.toISOString();
 
-    dto.extendedLikesInfo = {
-      likesCount: 0,
-      dislikesCount: 0,
-      myStatus: LikeStatus.None,
-      newestLikes: [],
+    newDto.extendedLikesInfo = {
+      likesCount: dto.likesCount,
+      dislikesCount: dto.dislikesCount,
+      myStatus: dto.myStatus,
+      newestLikes: dto.newestLikes,
     };
-    return dto;
+    return newDto;
   }
 }
-export type ExtendedLikesInfo = {
+export class ExtendedLikesInfo {
   likesCount: number;
   dislikesCount: number;
   myStatus: LikeStatus;
   newestLikes: LikeDetailsViewDto[];
-};
+  private constructor(
+    likesCount: number,
+    dislikesCount: number,
+    myStatus: LikeStatus,
+    newestLikes: LikeDetailsViewDto[],
+  ) {
+    this.likesCount = likesCount;
+    this.dislikesCount = dislikesCount;
+    this.myStatus = myStatus;
+    this.newestLikes = newestLikes;
+  }
+  static createDto(
+    likesCount: number,
+    dislikesCount: number,
+    myStatus: LikeStatus,
+    newestLikes: LikeDetailsViewDto[],
+  ) {
+    return new ExtendedLikesInfo(
+      likesCount,
+      dislikesCount,
+      myStatus,
+      newestLikes,
+    );
+  }
+}
 export type LikeDetailsViewDto = {
   addedAt: string;
   userId: string;

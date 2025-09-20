@@ -5,17 +5,17 @@ import { DomainExceptionCode } from '../exceptions/domain-exception-codes';
 
 @Injectable()
 export class ObjectIdValidationPipe
-  implements PipeTransform<string, Types.ObjectId>
+  implements PipeTransform<string, string>
 {
-  transform(value: string, metadata: ArgumentMetadata): Types.ObjectId {
+  transform(value: string, metadata: ArgumentMetadata): string {
     const validObjectId = Types.ObjectId.isValid(value);
     if (!validObjectId) {
       throw new DomainException({
         code: DomainExceptionCode.BadRequest,
-        message:"Not valid userId",
-        field: 'userId'
+        message:"Not valid id",
+        field: 'id'
       });
     }
-    return Types.ObjectId.createFromHexString(value);
+    return value
   }
 }

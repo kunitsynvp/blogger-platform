@@ -60,7 +60,9 @@ describe('Authorization flow (e2e) tests', () => {
         .expect(200);
       expect(response.body.accessToken).toBeDefined();
       expect(response.body.accessToken).toEqual(expect.any(String));
-    });
+      expect(response.headers['set-cookie']).toBeDefined();
+      expect(response.headers['set-cookie'][0].startsWith("refreshToken=")).toBeTruthy();
+    },10000);
     it('(400) ❌ Shouldn`t login user with invalid login', async () => {
       await userTestManger.createUserByRegistration(
         defaults.login,
@@ -76,7 +78,7 @@ describe('Authorization flow (e2e) tests', () => {
         })
         .expect(400);
       expect(response.body.errorsMessages[0].field).toBe('loginOrEmail');
-    });
+    },10000);
     it('(400) ❌ Shouldn`t login user with invalid email and password', async () => {
       await userTestManger.createUserByRegistration(
         defaults.login,

@@ -26,8 +26,13 @@ export class Comment {
   @Prop({ type: CommentatorInfo, required: true })
   commentatorInfo: CommentatorInfo;
 
-  // @Prop({type: LikesInfo, required: true})
-  // likesInfo: LikesInfo
+  // @Prop({type: LikesInfoDb, required: true})
+  // likesInfo: LikesInfoDb
+  @Prop({ type: Number, required: true })
+  likesCount: number;
+
+  @Prop({ type: Number, required: true })
+  dislikesCount: number;
 
   createdAt: Date;
   updatedAt: Date;
@@ -44,8 +49,8 @@ export class Comment {
       userLogin: dto.userLogin,
     };
     newComment.postId = new mongoose.Types.ObjectId(dto.postId);
-    // newComment.likesCount = 0
-    // newComment.dislikesCount = 0
+    newComment.likesCount = 0;
+    newComment.dislikesCount = 0;
 
     return newComment as CommentDocument;
   }
@@ -56,10 +61,6 @@ export class Comment {
     this.checkCommentsExceptions(checkExcDto);
     this.content = dto.content;
   }
-  // recalculateLikeStatusesAmount(newLikesCount: number, newDislikesCount: number ){
-  //   this.likesCount = newLikesCount as unknown as number
-  //   (this as CommentDocument).dislikesCount = newDislikesCount
-  // }
   checkCommentsExceptions(dto: CheckExceptionsCommentDomainDto) {
     if (
       dto.content.length < commentConstraints.minContentLength ||

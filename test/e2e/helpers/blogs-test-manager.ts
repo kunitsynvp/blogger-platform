@@ -1,0 +1,38 @@
+import { type INestApplication } from '@nestjs/common';
+import request from 'supertest';
+import { UsersRepository } from '../../../src/modules/user-accounts/infrastructure/users.repository';
+import { CommandBus } from '@nestjs/cqrs';
+import { CreateBlogInputDto } from '../../../src/modules/blogger-platform/blogs/api/input-dto/blogs-create-dto';
+import { BlogsViewDto } from '../../../src/modules/blogger-platform/blogs/api/view-dto/blogs-view-dto';
+
+export class BlogsTestManager {
+  private readonly BasicAuthString: string = 'Basic YWRtaW46cXdlcnR5';
+
+  private blogsQueryRepository: UsersRepository;
+  private commandBus: CommandBus;
+
+  constructor(private app: INestApplication) {
+    this.blogsQueryRepository = this.app.get<UsersRepository>(UsersRepository);
+    this.commandBus = this.app.get<CommandBus>(CommandBus);
+  }
+
+  async createBlogInDb(
+    name?: string,
+    description?: string,
+    websiteUrl?: string,
+  ): Promise<BlogsViewDto> {
+    const creationData: CreateBlogInputDto = {
+      name: name ?? 'New blog',
+      description: description ?? 'A new blog description',
+      websiteUrl: websiteUrl ?? 'https://newblog.com',
+    };
+
+    const res = await request(this.app.getHttpServer())
+      .post('/blogs')
+      .set('Authorization', this.BasicAuthString)
+      .send(creationData)
+      .expect(201);
+
+    return res.body;
+  }
+}
