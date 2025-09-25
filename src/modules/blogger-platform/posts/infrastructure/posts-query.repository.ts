@@ -40,7 +40,6 @@ export class PostsQueryRepository {
   ): Promise<PaginatedViewDto<PostsViewDto[]>> {
     const filter: FilterQuery<Comment> = {};
 
-    console.log(query);
     if (blogId) {
       filter.blogId = new mongoose.Types.ObjectId(blogId);
     }

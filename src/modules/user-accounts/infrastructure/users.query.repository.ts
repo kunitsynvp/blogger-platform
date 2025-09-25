@@ -4,8 +4,8 @@ import { UsersViewDto } from '../api/view-dto/users-view-dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { FilterQuery } from 'mongoose';
 import { PaginatedViewDto } from '../../../core/dto/base.paginated.view-dto';
-import { User } from '../domain/user.entity';
-import type { UserModelType } from '../domain/user.entity';
+import { User } from '../domain/user/user.entity';
+import type { UserModelType } from '../domain/user/user.entity';
 import { MeViewDto } from '../api/view-dto/me-view-dto';
 
 @Injectable()

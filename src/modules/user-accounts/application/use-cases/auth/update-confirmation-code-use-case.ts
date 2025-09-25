@@ -1,10 +1,10 @@
 import { UsersRepository } from '../../../infrastructure/users.repository';
-import { UserDocument } from '../../../domain/user.entity';
-import { UsersFields } from '../../../domain/enums/users-fields';
+import { UserDocument } from '../../../domain/user/user.entity';
+import { UsersFields } from '../../../domain/user/enums/users-fields';
 import { DomainException } from '../../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
 import { EmailDto } from '../../../api/input-dto/email-dto';
-import { EmailConfirmationUserDomainDto } from '../../../domain/dto/user-domain-dto';
+import { EmailConfirmationUserDomainDto } from '../../../domain/user/dto/user-domain-dto';
 import { RandomService } from '../../random.service';
 import { add } from 'date-fns';
 import { EmailService } from '../../../../notifications/application/email.service';

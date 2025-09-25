@@ -3,6 +3,9 @@
  */
 export class UserContextDto {
   userId: string;
+  deviceId: string;
+  iat: string;
+  exp: string;
 }
 
 export type Nullable<T> = { [P in keyof T]: T[P] | null };

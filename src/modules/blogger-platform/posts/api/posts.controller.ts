@@ -29,7 +29,7 @@ import { JwtOptionalAuthGuard } from '../../../user-accounts/guards/bearer/jwt-o
 import { OptionalCurrentUser } from '../../../user-accounts/guards/decorators/optional-current-user-param-decorator';
 import { UserContextDto } from '../../../user-accounts/guards/dto/user-context.dto';
 import { CreateCommentInputDto } from '../../comments/api/input-dto/create-comment-input-dto';
-import { JwtAuthGuard } from '../../../user-accounts/guards/bearer/jwt-auth-guard';
+import { JwtAccessTokenAuthGuard } from '../../../user-accounts/guards/bearer/jwt-access-token-auth-guard';
 import { CurrentUser } from '../../../user-accounts/guards/decorators/current-user-param-decorator';
 import { CreateCommentCommand } from '../../comments/application/use-cases/create-comment-use-case';
 import { CreateCommentCommandDto } from '../../comments/application/dto/create-comment-command-dto';
@@ -84,7 +84,7 @@ export class PostsController {
   }
 
   @Post(':postId/comments')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAccessTokenAuthGuard)
   @HttpCode(201)
   async createCommentForPost(
     @Body() dto: CreateCommentInputDto,
@@ -130,7 +130,7 @@ export class PostsController {
   }
 
   @Put(':postId/like-status')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAccessTokenAuthGuard)
   @HttpCode(204)
   async likePost(
     @CurrentUser() user: UserContextDto,

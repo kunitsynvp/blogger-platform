@@ -14,3 +14,4 @@ export const blogDBConstraints = {
   descriptionMaxLength: 1000,
   websiteUrlMaxLength: 200,
 }
+

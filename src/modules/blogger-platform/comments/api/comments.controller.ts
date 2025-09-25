@@ -6,7 +6,7 @@ import { LikeStatusDto } from '../../comments-likes/api/input-dto/like-status-in
 import { CreateCommentLikeStatusDto } from '../../comments-likes/application/dto/create-comment-like-status-dto';
 import { CurrentUser } from '../../../user-accounts/guards/decorators/current-user-param-decorator';
 import { UserContextDto } from '../../../user-accounts/guards/dto/user-context.dto';
-import { JwtAuthGuard } from '../../../user-accounts/guards/bearer/jwt-auth-guard';
+import { JwtAccessTokenAuthGuard } from '../../../user-accounts/guards/bearer/jwt-access-token-auth-guard';
 import { CommentLikeStatusCommand } from '../../comments-likes/application/use-cases/comment-like-status-use-case';
 import { JwtOptionalAuthGuard } from '../../../user-accounts/guards/bearer/jwt-optional-auth-guard';
 import { OptionalCurrentUser } from '../../../user-accounts/guards/decorators/optional-current-user-param-decorator';
@@ -33,7 +33,7 @@ export class CommentsController {
       CommentsViewDto
     >(new GetCommentByIdOrFailQuery(commentId,user));
   }
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAccessTokenAuthGuard)
   @HttpCode(204)
   @Put(':commentId/like-status')
   async likeStatus(
@@ -51,7 +51,7 @@ export class CommentsController {
     );
   }
   @HttpCode(204)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAccessTokenAuthGuard)
   @Put(':commentId')
   async putComment(@CurrentUser() user: UserContextDto,
                    @Param('commentId', ObjectIdValidationPipe) commentId: string,
@@ -60,7 +60,7 @@ export class CommentsController {
     return await this.commandBus.execute<UpdateCommentCommand,void>(new UpdateCommentCommand(updateDto))
   }
   @HttpCode(204)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAccessTokenAuthGuard)
   @Delete(':commentId')
   async deleteComment(@CurrentUser() user: UserContextDto,
                       @Param('commentId', ObjectIdValidationPipe) commentId: string,)

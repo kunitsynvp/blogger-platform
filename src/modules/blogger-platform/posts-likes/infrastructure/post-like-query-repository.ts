@@ -9,11 +9,13 @@ import {
 } from '../../posts/api/view-dto/posts-view-dto';
 import { LikeStatus } from '../../comments/domain/enums/like-status-enum';
 import { GetPostLikeStatusDto } from './dto/get-post-like-status-dto';
+import { PostLikeConfig } from '../config/post-likes-config';
 
 @Injectable()
 export class PostLikesQueryRepository {
   constructor(
     @InjectModel(PostLike.name) private postLikeModel: PostLikeModelType,
+    private postLikeConfig: PostLikeConfig
   ) {}
   async save(commentLike: PostLikeDocument): Promise<PostLikeDocument> {
     return await commentLike.save();
@@ -62,7 +64,7 @@ export class PostLikesQueryRepository {
         status: LikeStatus.Like,
       })
       .sort({ updatedAt: -1 })
-      .limit(3);
+      .limit(this.postLikeConfig.getExtendedLikesInfoLikesAmount);
     return likes.map((like) => {
       return {
         addedAt: like.updatedAt.toISOString(),

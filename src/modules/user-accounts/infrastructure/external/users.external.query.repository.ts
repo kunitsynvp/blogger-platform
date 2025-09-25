@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { DomainException } from '../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../core/exceptions/domain-exception-codes';
-import { User } from '../../domain/user.entity';
-import type { UserModelType } from '../../domain/user.entity';
+import { User } from '../../domain/user/user.entity';
+import type { UserModelType } from '../../domain/user/user.entity';
 import { UsersViewDto } from '../../api/view-dto/users-view-dto';
 
 @Injectable()

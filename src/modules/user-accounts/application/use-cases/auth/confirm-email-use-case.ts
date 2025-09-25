@@ -1,7 +1,7 @@
 import { UsersRepository } from '../../../infrastructure/users.repository';
-import { UserDocument } from '../../../domain/user.entity';
+import { UserDocument } from '../../../domain/user/user.entity';
 import { ConfirmationCodeDto } from '../../../api/input-dto/confirmation-code-dto';
-import { UsersFields } from '../../../domain/enums/users-fields';
+import { UsersFields } from '../../../domain/user/enums/users-fields';
 import { DomainException } from '../../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';

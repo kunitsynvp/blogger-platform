@@ -50,6 +50,8 @@ import {
 import { PostLikeRepository } from './posts-likes/infrastructure/post-like-repository';
 import { PostLikesQueryRepository } from './posts-likes/infrastructure/post-like-query-repository';
 import { PostLikeStatusUseCase } from './posts-likes/application/use-cases/post-like-status-use-case';
+import { PostLikeConfig } from './posts-likes/config/post-likes-config';
+import { BloggerPlatformConfig } from './config/blogger-platform-config';
 
 const useCases = [
   //blogs
@@ -105,29 +107,27 @@ const queryHandlers = [
     CommentLikeQueryRepository,
     PostLikeRepository,
     PostLikesQueryRepository,
+    PostLikeConfig,
+    BloggerPlatformConfig,
     {
       provide: ACCESS_TOKEN_INJECT_TOKEN,
-      useFactory: (): JwtService => {
+      useFactory: (config: BloggerPlatformConfig): JwtService => {
         return new JwtService({
-          secret: 'access-token-secret', //TODO: move to env. will be in the following lessons
-          signOptions: { expiresIn: '5m' },
+          secret: config.accessTokenSecret,
+          signOptions: { expiresIn: config.accessTokenExpireIn },
         });
       },
-      inject: [
-        /*TODO: inject configService. will be in the following lessons*/
-      ],
+      inject: [BloggerPlatformConfig],
     },
     {
       provide: REFRESH_TOKEN_INJECT_TOKEN,
-      useFactory: (): JwtService => {
+      useFactory: (config: BloggerPlatformConfig): JwtService => {
         return new JwtService({
-          secret: 'refresh-token-secret', //TODO: move to env. will be in the following lessons
-          signOptions: { expiresIn: '10m' },
+          secret: config.refreshTokenSecret,
+          signOptions: { expiresIn: config.refreshTokenExpireIn },
         });
       },
-      inject: [
-        /*TODO: inject configService. will be in the following lessons*/
-      ],
+      inject:  [BloggerPlatformConfig],
     },
   ],
   controllers: [BlogsController, PostsController, CommentsController],

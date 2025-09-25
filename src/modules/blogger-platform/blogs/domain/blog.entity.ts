@@ -2,10 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Model } from 'mongoose';
 import { CreateBlogDomainDto } from './dto/create-blog-domain-dto';
 import { UpdateBlogDomainDto } from './dto/update-blog-domain-dto';
-import {
-  blogConstraints,
-  blogDBConstraints,
-} from './constraints/blog-constraints';
+import { blogConstraints, blogDBConstraints, } from './constraints/blog-constraints';
 
 //флаг timestemp автоматичеки добавляет поля upatedAt и createdAt
 /**
@@ -19,7 +16,7 @@ export class Blog {
    * @type {string}
    * @required
    */
-  @Prop({ type: String, required: true, maxlength: blogDBConstraints.nameMaxLength })
+  @Prop({ type: String, required: true, maxlength: blogConstraints.nameMaxLength })
   name: string;
 
   /**

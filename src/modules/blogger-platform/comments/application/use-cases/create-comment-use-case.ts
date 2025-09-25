@@ -1,6 +1,6 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { CreateCommentCommandDto } from '../dto/create-comment-command-dto';
-import { UserDocument } from '../../../../user-accounts/domain/user.entity';
+import { UserDocument } from '../../../../user-accounts/domain/user/user.entity';
 import { PostsRepository } from '../../../posts/infrastructure/posts.repository';
 import { InjectModel } from '@nestjs/mongoose';
 import type { CommentModelType } from '../../domain/comment.entity';

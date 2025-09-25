@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { UsersController } from './api/users.controller';
 import { UsersService } from './application/users.service';
 import { MongooseModule } from '@nestjs/mongoose';
-import { User, UserSchema } from './domain/user.entity';
+import { User, UserSchema } from './domain/user/user.entity';
 import { UsersQueryRepository } from './infrastructure/users.query.repository';
 import { UsersRepository } from './infrastructure/users.repository';
 import { RandomService } from './application/random.service';
@@ -28,59 +28,78 @@ import {
 } from './constants/jwt-tokens-inject-constants';
 import { UsersExternalRepository } from './infrastructure/external/users.external.repository';
 import { UsersExternalQueryRepository } from './infrastructure/external/users.external.query.repository';
+import { UserAccountsConfig } from './config/users-accounts-config';
+import {
+  TerminateSpecifiedSessionUseCase
+} from './application/use-cases/session/terminate-specified-sessions-use-case';
+import { TerminateAllSessionsUseCase } from './application/use-cases/session/terminate-all-sessions-use-case';
+import { GetSessionsQueryHandler } from './application/queries/sessions/get-sessions-query';
+import { SessionsRepository } from './infrastructure/sessions-repository';
+import { SessionsQueryRepository } from './infrastructure/sessions-query-repository';
+import { Session } from 'node:inspector';
+import { SessionSchema } from './domain/sessions/session.entity';
+import { SessionsController } from './api/sessions.controller';
+import { UpdateTokensPairUseCase } from './application/use-cases/auth/update-tokens-pair-use-case';
+import { LogoutUseCase } from './application/use-cases/auth/logout-use-case';
+import { SessionsService } from './application/sessions.service';
+import { UsersSqlRepository } from './infrastructure/users.sql.repository';
 
 const useCases = [
   //auth
   ConfirmEmailUseCase,
   LoginUseCase,
-  //LogoutUseCase,
+  LogoutUseCase,
   RegistrationUseCase,
   SendRecoveryCodeUseCase,
   UpdateConfirmationCodeUseCase,
   UpdatePasswordUseCase,
-  //UpdateTokensPairUseCase,
+  UpdateTokensPairUseCase,
   //users
   CreateUserUseCase,
   DeleteUserUseCase,
+  //sessions
+  TerminateSpecifiedSessionUseCase,
+  TerminateAllSessionsUseCase,
 ];
 const queryHandlers = [
   GetMeQueryHandler,
   GetUserByIdAndFailQueryHandler,
   GetUsersQueryHandler,
+  GetSessionsQueryHandler,
 ];
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+    MongooseModule.forFeature([
+      { name: User.name, schema: UserSchema },
+      { name: Session.name, schema: SessionSchema },
+    ]),
     NotificationsModule,
     JwtModule
   ],
-  controllers: [UsersController, AuthController],
+  controllers: [UsersController, AuthController, SessionsController],
   providers: [
+    UserAccountsConfig,
     ...useCases,
     ...queryHandlers,
     {
       provide: ACCESS_TOKEN_INJECT_TOKEN,
-      useFactory: (): JwtService => {
+      useFactory: (config: UserAccountsConfig): JwtService => {
         return new JwtService({
-          secret: 'access-token-secret', //TODO: move to env. will be in the following lessons
-          signOptions: { expiresIn: '5m' },
+          secret: config.accessTokenSecret,
+          signOptions: { expiresIn: config.accessTokenExpireIn },
         });
       },
-      inject: [
-        /*TODO: inject configService. will be in the following lessons*/
-      ],
+      inject: [UserAccountsConfig],
     },
     {
       provide: REFRESH_TOKEN_INJECT_TOKEN,
-      useFactory: (): JwtService => {
+      useFactory: (config: UserAccountsConfig): JwtService => {
         return new JwtService({
-          secret: 'refresh-token-secret', //TODO: move to env. will be in the following lessons
-          signOptions: { expiresIn: '10m' },
+          secret: config.refreshTokenSecret,
+          signOptions: { expiresIn: config.refreshTokenExpireIn },
         });
       },
-      inject: [
-        /*TODO: inject configService. will be in the following lessons*/
-      ],
+      inject: [UserAccountsConfig],
     },
     UsersService,
     UsersQueryRepository,
@@ -89,11 +108,18 @@ const queryHandlers = [
     CryptoService,
     RandomService,
     UsersExternalRepository,
-    UsersExternalQueryRepository
+    UsersExternalQueryRepository,
+    SessionsRepository,
+    SessionsQueryRepository,
+    SessionsService,
+
+    //testing
+    UsersSqlRepository
   ],
   exports: [
     UsersExternalRepository,
-    UsersExternalQueryRepository
+    UsersExternalQueryRepository,
+    UserAccountsConfig
   ]
 })
 export class UserAccountsModule {}

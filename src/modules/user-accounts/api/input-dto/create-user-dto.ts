@@ -5,7 +5,7 @@ import {
   emailConstraints,
   loginConstraints,
   passwordConstraints,
-} from '../../domain/constraints/user-constraints';
+} from '../../domain/user/constraints/user-constraints';
 
 export class CreateUserInputDto {
   @IsStringWithTrim(loginConstraints.minLength, loginConstraints.maxLength)

@@ -1,17 +1,13 @@
 import { UsersRepository } from '../../../infrastructure/users.repository';
-import { UsersFields } from '../../../domain/enums/users-fields';
+import { UsersFields } from '../../../domain/user/enums/users-fields';
 import { DomainException } from '../../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
 import { CreateUserInputDto } from '../../../api/input-dto/create-user-dto';
-import { CreateUserDomainOptions } from '../../../domain/dto/user-domain-dto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UsersService } from '../../users.service';
 
 export class CreateUserCommand {
-  constructor(
-    public dto: CreateUserInputDto,
-    public options: CreateUserDomainOptions,
-  ) {}
+  constructor(public dto: CreateUserInputDto) {}
 }
 @CommandHandler(CreateUserCommand)
 export class CreateUserUseCase implements ICommandHandler<CreateUserCommand> {
@@ -31,10 +27,8 @@ export class CreateUserUseCase implements ICommandHandler<CreateUserCommand> {
         message: 'loginOrEmail already exist',
         field: nonUniqueFields,
       });
-
-    return await this.usersService.createUser(command.dto, {
-      createBySA: true,
-    });
+    const isUserConfirmed = true
+    return await this.usersService.createUser(command.dto, isUserConfirmed);
   }
   private async checkLoginEmailUniqueness(
     login: string,

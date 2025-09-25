@@ -1,10 +1,10 @@
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { UsersTestManager } from './e2e/helpers/users-test-manager';
+import { UsersTestManager } from './e2e/helpers/test-managers/users-test-manager';
 import { initSettings } from './e2e/helpers/testing-app-init';
 import { deleteAllData } from './e2e/helpers/delete-all-data';
-import { CommentsTestManager } from './e2e/helpers/comments-test-manager';
-import { PostsTestManager } from './e2e/helpers/posts-test-manager';
+import { CommentsTestManager } from './e2e/helpers/test-managers/comments-test-manager';
+import { PostsTestManager } from './e2e/helpers/test-managers/posts-test-manager';
 import { LikeStatus } from '../src/modules/blogger-platform/comments/domain/enums/like-status-enum';
 import mongoose from 'mongoose';
 

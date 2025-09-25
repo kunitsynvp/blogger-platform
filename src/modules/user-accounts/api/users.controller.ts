@@ -53,7 +53,7 @@ export class UsersController {
   @UseGuards(BasicAuthGuard)
   async createUser(@Body() body: CreateUserInputDto): Promise<UsersViewDto> {
     const userId = await this.commandBus.execute<CreateUserCommand, string>(
-      new CreateUserCommand(body, { createBySA: true }),
+      new CreateUserCommand(body),
     );
 
     return this.queryBus.execute<

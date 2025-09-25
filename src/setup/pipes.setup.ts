@@ -1,13 +1,10 @@
-import {
-  INestApplication,
-  ValidationError,
-  ValidationPipe,
-} from '@nestjs/common';
+import { ValidationError, ValidationPipe } from '@nestjs/common';
 import {
   DomainException,
+  ExtensionType,
 } from '../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../core/exceptions/domain-exception-codes';
-import { ExtensionType } from '../core/exceptions/domain-exceptions';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 //функция использует рекурсию для обхода объекта children при вложенных полях при валидации
 //поставьте логи и разберитесь как она работает
@@ -15,7 +12,7 @@ import { ExtensionType } from '../core/exceptions/domain-exceptions';
 export const errorFormatter = (
   errors: ValidationError[],
   errorMessage?: any,
-): {errorsMessages: ExtensionType[]} => {
+): { errorsMessages: ExtensionType[] } => {
   const errorsForResponse = errorMessage || [];
 
   for (const error of errors) {
@@ -38,7 +35,7 @@ export const errorFormatter = (
   return { errorsMessages: errorsForResponse };
 };
 
-export function pipesSetup(app: INestApplication) {
+export function pipesSetup(app: NestExpressApplication) {
   //Глобальный пайп для валидации и трансформации входящих данных.
   app.useGlobalPipes(
     //new ObjectIdValidationTransformationPipe(),
@@ -58,7 +55,7 @@ export function pipesSetup(app: INestApplication) {
         throw new DomainException({
           code: DomainExceptionCode.ValidationError,
           message: 'Validation failed',
-          field: "field",
+          field: 'field',
           extensions: formattedErrors,
         });
       },

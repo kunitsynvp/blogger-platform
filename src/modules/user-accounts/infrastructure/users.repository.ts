@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import type { UserModelType } from '../domain/user.entity';
-import { User, UserDocument } from '../domain/user.entity';
+import type { UserModelType } from '../domain/user/user.entity';
+import { User, UserDocument } from '../domain/user/user.entity';
 import { InjectModel } from '@nestjs/mongoose';
-import { UsersFields } from '../domain/enums/users-fields';
+import { UsersFields } from '../domain/user/enums/users-fields';
 import { DomainException } from '../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../core/exceptions/domain-exception-codes';
 
@@ -20,6 +20,17 @@ export class UsersRepository {
         code: DomainExceptionCode.NotFound,
         message: 'User not found',
         field: 'none',
+      });
+    }
+    return user;
+  }
+  async findByIdOrUnauthorizedFail(id: string): Promise<UserDocument> {
+    const user = await this.UserModel.findById(id);
+    if (!user) {
+      throw new DomainException({
+        code: DomainExceptionCode.Unauthorized,
+        message: 'Unauthorized',
+        field: 'None',
       });
     }
     return user;

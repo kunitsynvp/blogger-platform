@@ -1,7 +1,7 @@
 import { UsersRepository } from '../../../infrastructure/users.repository';
-import { UsersFields } from '../../../domain/enums/users-fields';
+import { UsersFields } from '../../../domain/user/enums/users-fields';
 import { EmailDto } from '../../../api/input-dto/email-dto';
-import { PasswordRecoveryUserDomainDto } from '../../../domain/dto/user-domain-dto';
+import { PasswordRecoveryUserDomainDto } from '../../../domain/user/dto/user-domain-dto';
 import { RandomService } from '../../random.service';
 import { add } from 'date-fns';
 import { EmailService } from '../../../../notifications/application/email.service';

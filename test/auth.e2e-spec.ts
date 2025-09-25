@@ -1,13 +1,16 @@
-import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { UsersTestManager } from './e2e/helpers/users-test-manager';
+import { UsersTestManager } from './e2e/helpers/test-managers/users-test-manager';
 import { initSettings } from './e2e/helpers/testing-app-init';
 import { deleteAllData } from './e2e/helpers/delete-all-data';
 import { mockedRandomServiceReturnedUUId } from './mock/random-service-mock';
+import { INestApplication } from '@nestjs/common';
+import { SessionsTestManager } from './e2e/helpers/test-managers/sessions-test-manager';
+import { delay } from './e2e/helpers/delay';
 
 describe('Authorization flow (e2e) tests', () => {
   let app: INestApplication;
   let userTestManger: UsersTestManager;
+  let sessionsTestManager: SessionsTestManager
 
   afterAll(async () => {
     await app.close();
@@ -25,6 +28,8 @@ describe('Authorization flow (e2e) tests', () => {
   const passRecoveryPath = '/auth/password-recovery';
   const newPassPath = '/auth/new-password';
   const mePath = '/auth/me';
+  const logoutPath = '/auth/logout';
+  const refreshTokenPath = '/auth/refresh-token';
 
   describe('(/auth/login) Login e2e tests', () => {
     beforeEach(async () => {
@@ -39,6 +44,7 @@ describe('Authorization flow (e2e) tests', () => {
       const result = await initSettings();
       app = result.app;
       userTestManger = result.userTestManger;
+      sessionsTestManager = result.sessionTestManager
     });
     afterEach(async () => {
       await deleteAllData(app);
@@ -46,7 +52,7 @@ describe('Authorization flow (e2e) tests', () => {
     });
 
     it('(200) ✅ Should login user with correct credentials', async () => {
-      await userTestManger.createUserByRegistration(
+      const createdUser = await userTestManger.createUserByRegistration(
         defaults.login,
         defaults.password,
         defaults.email,
@@ -62,9 +68,12 @@ describe('Authorization flow (e2e) tests', () => {
       expect(response.body.accessToken).toEqual(expect.any(String));
       expect(response.headers['set-cookie']).toBeDefined();
       expect(response.headers['set-cookie'][0].startsWith("refreshToken=")).toBeTruthy();
+      const session = await sessionsTestManager.getSessionByUserId(createdUser._id.toString());
+      expect(session.length).toBe(1);
+
     },10000);
     it('(400) ❌ Shouldn`t login user with invalid login', async () => {
-      await userTestManger.createUserByRegistration(
+      const createdUser = await userTestManger.createUserByRegistration(
         defaults.login,
         defaults.password,
         defaults.email,
@@ -78,9 +87,11 @@ describe('Authorization flow (e2e) tests', () => {
         })
         .expect(400);
       expect(response.body.errorsMessages[0].field).toBe('loginOrEmail');
+      const session = await sessionsTestManager.getSessionByUserId(createdUser._id.toString());
+      expect(session.length).toBe(0);
     },10000);
     it('(400) ❌ Shouldn`t login user with invalid email and password', async () => {
-      await userTestManger.createUserByRegistration(
+      const createdUser =await userTestManger.createUserByRegistration(
         defaults.login,
         defaults.password,
         defaults.email,
@@ -97,9 +108,12 @@ describe('Authorization flow (e2e) tests', () => {
       expect(response.body.errorsMessages.length).toBe(2);
       expect(response.body.errorsMessages[0].field).toBe('loginOrEmail');
       expect(response.body.errorsMessages[1].field).toBe('password');
+
+      const session = await sessionsTestManager.getSessionByUserId(createdUser._id.toString());
+      expect(session.length).toBe(0);
     });
     it('(401) ❌ Shouldn`t login user with incorrect login', async () => {
-      await userTestManger.createUserByRegistration(
+      const createdUser = await userTestManger.createUserByRegistration(
         defaults.login,
         defaults.password,
         defaults.email,
@@ -112,9 +126,12 @@ describe('Authorization flow (e2e) tests', () => {
           password: defaults.password,
         })
         .expect(401);
+
+      const session = await sessionsTestManager.getSessionByUserId(createdUser._id.toString());
+      expect(session.length).toBe(0);
     });
     it('(401) ❌ Shouldn`t login user with incorrect password', async () => {
-      await userTestManger.createUserByRegistration(
+      const createdUser = await userTestManger.createUserByRegistration(
         defaults.login,
         defaults.password,
         defaults.email,
@@ -127,6 +144,8 @@ describe('Authorization flow (e2e) tests', () => {
           password: incorrectPass,
         })
         .expect(401);
+      const session = await sessionsTestManager.getSessionByUserId(createdUser._id.toString());
+      expect(session.length).toBe(0);
     });
   });
 
@@ -195,9 +214,9 @@ describe('Authorization flow (e2e) tests', () => {
       await deleteAllData(app);
     });
 
-    it('(200) ✅ Should confirm user with correct input', async () => {
+    it('(204) ✅ Should confirm user with correct input', async () => {
       const registeredUser = await userTestManger.createUserByRegistration();
-
+      console.log(registeredUser);
       await request(app.getHttpServer())
         .post(regConfPath)
         .send({
@@ -276,7 +295,9 @@ describe('Authorization flow (e2e) tests', () => {
     });
     it('(400) ❌ Shouldn`t send email to already confirmed user ', async () => {
       const users = await userTestManger.createUsersBySA(1);
-      console.log(users);
+      console.log("users view: ",users);
+      const createdUser= await userTestManger.findUserById(users[0].id)
+      console.log(createdUser);
       const response = await request(app.getHttpServer())
         .post(regEmailResPath)
         .send({
@@ -425,7 +446,7 @@ describe('Authorization flow (e2e) tests', () => {
         defaults.password,
         defaults.email,
       );
-      const {accessToken} = await userTestManger.createAccessTokenForCurrentUser(defaults.login, defaults.password)
+      const {accessToken} = await userTestManger.loginUser(defaults.login, defaults.password)
 
       const response = await request(app.getHttpServer())
         .get(mePath)
@@ -441,12 +462,199 @@ describe('Authorization flow (e2e) tests', () => {
         defaults.password,
         defaults.email,
       );
-      await userTestManger.createAccessTokenForCurrentUser(defaults.login, defaults.password)
+      await userTestManger.loginUser(defaults.login, defaults.password)
       const invalidToken = "invalidToken"
       await request(app.getHttpServer())
         .get(mePath)
         .set('Authorization', "Bearer " + invalidToken)
         .expect(401);
+
+    });
+  });
+
+  describe('(/auth/refresh-token) Generate new tokens pair e2e tests', () => {
+    beforeEach(async () => {
+      const result = await initSettings();
+      app = result.app;
+      userTestManger = result.userTestManger;
+    });
+    afterEach(async () => {
+      await deleteAllData(app);
+      jest.restoreAllMocks();
+    });
+
+    it('(200) ✅ Should generate new tokens pair with correct input', async () => {
+      const createdUser = await userTestManger.createUserByRegistration(
+        defaults.login,
+        defaults.password,
+        defaults.email,
+      );
+      const {accessToken,refreshToken} = await userTestManger.loginUser(defaults.login, defaults.password)
+
+      await delay(1000)
+      const response = await request(app.getHttpServer())
+        .post(refreshTokenPath)
+        .set('Cookie', "refreshToken=" + refreshToken)
+        .expect(200);
+
+
+      expect(response.body.accessToken).not.toBe(accessToken);
+      expect(response.headers['set-cookie'][0].slice(13)).not.toBe(refreshToken);
+
+      const foundSession = await sessionsTestManager.getSessionByUserId(createdUser._id.toString());
+      console.log(foundSession);
+      expect(foundSession.length).toBe(1)
+    });
+    it('(401) ❌ Shouldn`t generate new tokens pair with invalid type of refresh token', async () => {
+      const createdUser = await userTestManger.createUserByRegistration(
+        defaults.login,
+        defaults.password,
+        defaults.email,
+      );
+      const {accessToken,refreshToken} = await userTestManger.loginUser(defaults.login, defaults.password)
+      const invalidRefreshToken = true
+      await delay(1000)
+      const response = await request(app.getHttpServer())
+        .post(refreshTokenPath)
+        .set('Cookie', "refreshToken=" + invalidRefreshToken)
+        .expect(401);
+
+
+      const foundSession = await sessionsTestManager.getSessionByUserId(createdUser._id.toString());
+      console.log(foundSession);
+      expect(foundSession.length).toBe(1)
+
+    });
+    it('(401) ❌ Shouldn`t generate new tokens pair with input accessToken', async () => {
+      const createdUser = await userTestManger.createUserByRegistration(
+        defaults.login,
+        defaults.password,
+        defaults.email,
+      );
+      const {accessToken,refreshToken} = await userTestManger.loginUser(defaults.login, defaults.password)
+      await delay(1000)
+      const response = await request(app.getHttpServer())
+        .post(refreshTokenPath)
+        .set('Cookie', "refreshToken=" + accessToken)
+        .expect(401);
+
+
+      const foundSession = await sessionsTestManager.getSessionByUserId(
+        createdUser._id.toString(),
+      );
+      console.log(foundSession);
+      expect(foundSession.length).toBe(1)
+
+    });
+    it('(401) ❌ Shouldn`t generate new tokens pair with with input refreshToken which not in db', async () => {
+      const createdUser = await userTestManger.createUserByRegistration(
+        defaults.login,
+        defaults.password,
+        defaults.email,
+      );
+      const {accessToken,refreshToken} = await userTestManger.loginUser(defaults.login, defaults.password)
+      await delay(1000)
+      const {deviceId} = await userTestManger.decodeRefreshToken(refreshToken);
+      await sessionsTestManager.deleteSpecifiedSession(deviceId)
+      const foundSessionAfterDeleting = await sessionsTestManager.getSessionByUserId(createdUser._id.toString());
+      expect(foundSessionAfterDeleting.length).toBe(0)
+
+      const response = await request(app.getHttpServer())
+        .post(refreshTokenPath)
+        .set('Cookie', "refreshToken=" + refreshToken)
+        .expect(401);
+
+    });
+    it('(401) ❌ Shouldn`t generate new tokens pair which user is deleted', async () => {
+      const createdUser = await userTestManger.createUserByRegistration(
+        defaults.login,
+        defaults.password,
+        defaults.email,
+      );
+      const {accessToken,refreshToken} = await userTestManger.loginUser(defaults.login, defaults.password)
+      await delay(1000)
+      await userTestManger.deleteUserById(createdUser._id.toString());
+      const response = await request(app.getHttpServer())
+        .post(refreshTokenPath)
+        .set('Cookie', "refreshToken=" + refreshToken)
+        .expect(401);
+
+
+      const foundSession = await sessionsTestManager.getSessionByUserId(
+        createdUser._id.toString(),
+      );
+      console.log(foundSession);
+      expect(foundSession.length).toBe(1)
+
+    });
+  });
+
+  describe('(/auth/logout) Logout e2e tests', () => {
+    beforeEach(async () => {
+      const result = await initSettings();
+      app = result.app;
+      userTestManger = result.userTestManger;
+    });
+    afterEach(async () => {
+      await deleteAllData(app);
+      jest.restoreAllMocks();
+    });
+
+    it('(204) ✅ Should logout with correct input', async () => {
+      const createdUser = await userTestManger.createUserByRegistration(
+        defaults.login,
+        defaults.password,
+        defaults.email,
+      );
+      const {accessToken,refreshToken} = await userTestManger.loginUser(defaults.login, defaults.password)
+      const foundSessionBeforeDelete = await sessionsTestManager.getSessionByUserId(createdUser._id.toString());
+      expect(foundSessionBeforeDelete.length).toBe(1)
+
+      const response = await request(app.getHttpServer())
+        .post(logoutPath)
+        .set('Cookie', "refreshToken=" + refreshToken)
+        .expect(204);
+      const foundSessionAfterDelete = await sessionsTestManager.getSessionByUserId(createdUser._id.toString());
+      expect(foundSessionAfterDelete.length).toBe(0)
+
+    });
+    it('(401) ❌ Shouldn`t logout with incorrect token', async () => {
+      const createdUser = await userTestManger.createUserByRegistration(
+        defaults.login,
+        defaults.password,
+        defaults.email,
+      );
+      const invalidRefreshToken = true
+      const {accessToken,refreshToken} = await userTestManger.loginUser(defaults.login, defaults.password)
+      const foundSessionBeforeDelete = await sessionsTestManager.getSessionByUserId(createdUser._id.toString());
+      expect(foundSessionBeforeDelete.length).toBe(1)
+
+      const response = await request(app.getHttpServer())
+        .post(logoutPath)
+        .set('Cookie', "refreshToken=" + invalidRefreshToken)
+        .expect(401);
+      const foundSessionAfterDelete = await sessionsTestManager.getSessionByUserId(createdUser._id.toString());
+      expect(foundSessionAfterDelete.length).toBe(1)
+
+    });
+    it('(401) ❌ Shouldn`t logout with input refreshToken which not in db', async () => {
+      const createdUser = await userTestManger.createUserByRegistration(
+        defaults.login,
+        defaults.password,
+        defaults.email,
+      );
+      const {accessToken,refreshToken} = await userTestManger.loginUser(defaults.login, defaults.password)
+      const foundSessionBeforeDelete = await sessionsTestManager.getSessionByUserId(createdUser._id.toString());
+      expect(foundSessionBeforeDelete.length).toBe(1)
+
+      await userTestManger.deleteUserById(createdUser._id.toString());
+
+      const response = await request(app.getHttpServer())
+        .post(logoutPath)
+        .set('Cookie', "refreshToken=" + refreshToken)
+        .expect(401);
+      const foundSessionAfterDelete = await sessionsTestManager.getSessionByUserId(createdUser._id.toString());
+      expect(foundSessionAfterDelete.length).toBe(1)
 
     });
   });

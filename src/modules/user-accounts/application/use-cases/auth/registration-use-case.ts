@@ -2,7 +2,7 @@ import { UsersRepository } from '../../../infrastructure/users.repository';
 import { UsersService } from '../../users.service';
 import { EmailService } from '../../../../notifications/application/email.service';
 import { CreateUserInputDto } from '../../../api/input-dto/create-user-dto';
-import { UserDocument } from '../../../domain/user.entity';
+import { UserDocument } from '../../../domain/user/user.entity';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
 export class RegistrationCommand {
@@ -19,7 +19,8 @@ export class RegistrationUseCase
   ) {}
 
   async execute(command: RegistrationCommand): Promise<void> {
-    const createdUserId = await this.usersService.createUser(command.dto);
+    const isUserConfirmed = false
+    const createdUserId = await this.usersService.createUser(command.dto, isUserConfirmed);
 
     const foundUser = await this.usersRepository.findById(createdUserId);
 

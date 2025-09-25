@@ -1,16 +1,18 @@
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { UsersTestManager } from './e2e/helpers/users-test-manager';
+import { UsersTestManager } from './e2e/helpers/test-managers/users-test-manager';
 import { initSettings } from './e2e/helpers/testing-app-init';
 import { deleteAllData } from './e2e/helpers/delete-all-data';
-import { PostsTestManager } from './e2e/helpers/posts-test-manager';
+import { PostsTestManager } from './e2e/helpers/test-managers/posts-test-manager';
 import { LikeStatus } from '../src/modules/blogger-platform/comments/domain/enums/like-status-enum';
+import { BlogsTestManager } from './e2e/helpers/test-managers/blogs-test-manager';
 
 describe('Post flow (e2e) tests', () => {
   const basicAuthString: string = "Basic YWRtaW46cXdlcnR5"
   let app: INestApplication;
   let userTestManger: UsersTestManager;
   let postsTestManager: PostsTestManager;
+  let blogsTestManager: BlogsTestManager;
 
   afterAll(async () => {
     await app.close();
@@ -22,6 +24,12 @@ describe('Post flow (e2e) tests', () => {
     title: "newTitle",
     shortDescription: 'newShortDescription',
     content: "newContent",
+
+    //blog
+    name: "newBlogName",
+    description: "newDescription",
+    websiteUrl: "https://newWebsiteUrl.ru"
+
 
   };
 
@@ -39,6 +47,7 @@ describe('Post flow (e2e) tests', () => {
       app = result.app;
       postsTestManager = result.postsTestManager;
       userTestManger = result.userTestManger
+      blogsTestManager = result.blogsTestManager
     });
     afterEach(async () => {
       await deleteAllData(app);
@@ -432,7 +441,7 @@ describe('Post flow (e2e) tests', () => {
       }, 20000
     );
   })
-  describe('POST(/posts/like-status) like statuses for posts e2e tests', () => {
+  describe('POST(/posts) create post e2e tests', () => {
     beforeEach(async () => {
       // const result = await initSettings((moduleBuilder) =>
       //   moduleBuilder.overrideProvider(JwtService).useValue(
@@ -452,205 +461,190 @@ describe('Post flow (e2e) tests', () => {
       jest.restoreAllMocks();
     });
 
-    it('(204) ✅ Should create like for post', async () => {
-      const post = await postsTestManager.createPostInDb()
-      const createdUser = await userTestManger.createUserByRegistration(
-        defaults.login,
-        defaults.password,
-        defaults.email,
-      );
-      const {accessToken} = await userTestManger.loginUser(defaults.login, defaults.password)
+    it('(201) ✅ Should create post', async () => {
+      const createdBlog = await blogsTestManager.createBlogInDb(defaults.name,defaults.description,defaults.websiteUrl)
 
       const res = await request(app.getHttpServer())
-        .put(`/posts/${post._id.toString()}/like-status`)
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({likeStatus: "Like"})
-        .expect(204)
-      const postWithLike = await postsTestManager.getPostViewById(post._id.toString(), accessToken);
-      expect(postWithLike).not.toBeUndefined()
-      expect(postWithLike.extendedLikesInfo.likesCount).toBe(1)
-      expect(postWithLike.extendedLikesInfo.dislikesCount).toBe(0)
-      expect(postWithLike.extendedLikesInfo.myStatus).toBe(LikeStatus.Like)
-      expect(postWithLike.extendedLikesInfo.newestLikes).toEqual([
-        {
-          addedAt: expect.any(String),
-          login: createdUser.login,
-          userId: createdUser._id.toString(),
-
-        }
-      ])
+        .post(`/posts`)
+        .set('Authorization', basicAuthString)
+        .send({
+          title: defaults.title,
+          shortDescription: defaults.shortDescription,
+          content: defaults.content,
+          blogId: createdBlog.id,
+        })
+        .expect(201)
     });
-    it("(400) ❌ Shouldn`t create like for post with invalid likeStatus", async () => {
-      const post = await postsTestManager.createPostInDb()
-      const createdUser = await userTestManger.createUserByRegistration(
-        defaults.login,
-        defaults.password,
-        defaults.email,
-      );
-      const {accessToken} = await userTestManger.loginUser(defaults.login, defaults.password)
-      const invalidLikeStatus = "dizlike"
+    it("(401) ❌ Shouldn`t create post with invalid basic authorization", async () => {
+      const createdBlog = await blogsTestManager.createBlogInDb(defaults.name,defaults.description,defaults.websiteUrl)
+
+      const invalidBasicAuthString = "invalid"
       const res = await request(app.getHttpServer())
-        .put(`/posts/${post._id.toString()}/like-status`)
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({likeStatus: invalidLikeStatus})
-        .expect(400)
-      expect(res.body.errorsMessages[0].field).toBe('likeStatus')
-      const postWithLike = await postsTestManager.getPostViewById(post._id.toString(), accessToken);
-      expect(postWithLike).not.toBeUndefined()
-      expect(postWithLike.extendedLikesInfo.likesCount).toBe(0)
-      expect(postWithLike.extendedLikesInfo.dislikesCount).toBe(0)
-      expect(postWithLike.extendedLikesInfo.myStatus).toBe(LikeStatus.None)
-      expect(postWithLike.extendedLikesInfo.newestLikes).toEqual([])
-    })
-    it("(401) ❌ Shouldn`t create like for comment with invalid token", async () => {
-      const post = await postsTestManager.createPostInDb()
-      const createdUser = await userTestManger.createUserByRegistration(
-        defaults.login,
-        defaults.password,
-        defaults.email,
-      );
-      const {accessToken} = await userTestManger.loginUser(defaults.login, defaults.password)
-      const invalidToke = "invalidToken"
-      const res = await request(app.getHttpServer())
-        .put(`/posts/${post._id.toString()}/like-status`)
-        .set('Authorization', `Bearer ${invalidToke}`)
-        .send({likeStatus: LikeStatus.Like})
+        .post(`/posts`)
+        .set('Authorization', invalidBasicAuthString)
+        .send({
+          title: defaults.title,
+          shortDescription: defaults.shortDescription,
+          content: defaults.content,
+          blogId: createdBlog.id,
+        })
         .expect(401)
-      expect(res.body.errorsMessages[0].field).toBe('None')
-      const postWithLike = await postsTestManager.getPostViewById(post._id.toString(), accessToken);
-      expect(postWithLike).not.toBeUndefined()
-      expect(postWithLike.extendedLikesInfo.likesCount).toBe(0)
-      expect(postWithLike.extendedLikesInfo.dislikesCount).toBe(0)
-      expect(postWithLike.extendedLikesInfo.myStatus).toBe(LikeStatus.None)
-      expect(postWithLike.extendedLikesInfo.newestLikes).toEqual([])
     })
-    it("(400) ❌ Shouldn`t create like for post with invalid postId", async () => {
-      const post = await postsTestManager.createPostInDb()
-      const createdUser = await userTestManger.createUserByRegistration(
-        defaults.login,
-        defaults.password,
-        defaults.email,
-      );
-      const {accessToken} = await userTestManger.loginUser(defaults.login, defaults.password)
-      const invalidPostId = "invalidPostId"
+    it("(400) ❌ Shouldn`t create post with invalid input data(incorrect title)", async () => {
+      const createdBlog = await blogsTestManager.createBlogInDb(defaults.name,defaults.description,defaults.websiteUrl)
+
+      const invalidTitle = 4
       const res = await request(app.getHttpServer())
-        .put(`/posts/${invalidPostId}/like-status`)
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({likeStatus: LikeStatus.Like})
+        .post(`/posts`)
+        .set('Authorization', basicAuthString)
+        .send({
+          title: invalidTitle,
+          shortDescription: defaults.shortDescription,
+          content: defaults.content,
+          blogId: createdBlog.id,
+        })
         .expect(400)
-      expect(res.body.errorsMessages[0].field).toBe('id')
-      const postWithLike = await postsTestManager.getPostViewById(post._id.toString(), accessToken);
-      expect(postWithLike).not.toBeUndefined()
-      expect(postWithLike.extendedLikesInfo.likesCount).toBe(0)
-      expect(postWithLike.extendedLikesInfo.dislikesCount).toBe(0)
-      expect(postWithLike.extendedLikesInfo.myStatus).toBe(LikeStatus.None)
-      expect(postWithLike.extendedLikesInfo.newestLikes).toEqual([])
     })
-    it("(404) ❌ Shouldn`t create like for post with invalid postId", async () => {
-
-      const post = await postsTestManager.createPostInDb()
-      const createdUser = await userTestManger.createUserByRegistration(
-        defaults.login,
-        defaults.password,
-        defaults.email,
-      );
-      const {accessToken} = await userTestManger.loginUser(defaults.login, defaults.password)
-      let invalidPostId = "6899faa5b6cd8a78f7707fb0"
+    it("(404) ❌ Shouldn`t create post for deleted blog", async () => {
+      const createdBlog = await blogsTestManager.createBlogInDb(defaults.name,defaults.description,defaults.websiteUrl)
+      await blogsTestManager.deleteBlogById(createdBlog.id)
       const res = await request(app.getHttpServer())
-        .put(`/posts/${invalidPostId}/like-status`)
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({likeStatus: LikeStatus.Like})
+        .post(`/posts`)
+        .set('Authorization', basicAuthString)
+        .send({
+          title: defaults.title,
+          shortDescription: defaults.shortDescription,
+          content: defaults.content,
+          blogId: createdBlog.id,
+        })
         .expect(404)
-      expect(res.body.errorsMessages[0].field).toBe('id')
-      const postWithLike = await postsTestManager.getPostViewById(post._id.toString(), accessToken);
-      expect(postWithLike).not.toBeUndefined()
-      expect(postWithLike.extendedLikesInfo.likesCount).toBe(0)
-      expect(postWithLike.extendedLikesInfo.dislikesCount).toBe(0)
-      expect(postWithLike.extendedLikesInfo.myStatus).toBe(LikeStatus.None)
-      expect(postWithLike.extendedLikesInfo.newestLikes).toEqual([])
-
     })
-    it("(204) ✅ Shouldn`t create two likes for comment by one user, likes amount should not change", async () => {
-      const post = await postsTestManager.createPostInDb()
-      const createdUser = await userTestManger.createUserByRegistration(
-        defaults.login,
-        defaults.password,
-        defaults.email,
-      );
-      const {accessToken} = await userTestManger.loginUser(defaults.login, defaults.password)
+  })
+  describe('PUT(/posts/:postId) update post e2e tests', () => {
+    beforeEach(async () => {
+      // const result = await initSettings((moduleBuilder) =>
+      //   moduleBuilder.overrideProvider(JwtService).useValue(
+      //     new JwtService({
+      //       secret: 'secret_key',
+      //       signOptions: { expiresIn: '1m' },
+      //     }),
+      //   ),
+      // );
+      const result = await initSettings();
+      app = result.app;
+      postsTestManager = result.postsTestManager;
+      userTestManger = result.userTestManger
+    });
+    afterEach(async () => {
+      await deleteAllData(app);
+      jest.restoreAllMocks();
+    });
+
+    it('(204) ✅ Should update post', async () => {
+      const createdBlog = await blogsTestManager.createBlogInDb(defaults.name,defaults.description,defaults.websiteUrl)
+      const createdPost = await postsTestManager.createPostInDbWIthBlog(createdBlog.id)
 
       const res = await request(app.getHttpServer())
-        .put(`/posts/${post._id.toString()}/like-status`)
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({likeStatus: "Like"})
+        .put(`/posts/${createdPost._id.toString()}`)
+        .set('Authorization', basicAuthString)
+        .send({
+          title: defaults.title,
+          shortDescription: defaults.shortDescription,
+          content: defaults.content,
+          blogId: createdBlog.id,
+        })
         .expect(204)
-      const postWithLike1 = await postsTestManager.getPostViewById(post._id.toString(), accessToken);
-      expect(postWithLike1).not.toBeUndefined()
-      expect(postWithLike1.extendedLikesInfo.likesCount).toBe(1)
-      expect(postWithLike1.extendedLikesInfo.dislikesCount).toBe(0)
-      expect(postWithLike1.extendedLikesInfo.myStatus).toBe(LikeStatus.Like)
-      expect(postWithLike1.extendedLikesInfo.newestLikes).toEqual([
-        {
-          addedAt: expect.any(String),
-          login: createdUser.login,
-          userId: createdUser._id.toString(),
-
-        }])
-      const res2 = await request(app.getHttpServer())
-        .put(`/posts/${post._id.toString()}/like-status`)
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({likeStatus: "Like"})
-        .expect(204)
-      const postWithLike2 = await postsTestManager.getPostViewById(post._id.toString(), accessToken);
-      expect(postWithLike2).not.toBeUndefined()
-      expect(postWithLike2.extendedLikesInfo.likesCount).toBe(1)
-      expect(postWithLike2.extendedLikesInfo.dislikesCount).toBe(0)
-      expect(postWithLike2.extendedLikesInfo.myStatus).toBe(LikeStatus.Like)
-      expect(postWithLike2.extendedLikesInfo.newestLikes).toEqual([
-        {
-          addedAt: expect.any(String),
-          login: createdUser.login,
-          userId: createdUser._id.toString(),
-
-        }])
-    })
-    it("(204) ✅ should change like to dislike for comment", async () => {
-      const post = await postsTestManager.createPostInDb()
-      const createdUser = await userTestManger.createUserByRegistration(
-        defaults.login,
-        defaults.password,
-        defaults.email,
-      );
-      const {accessToken} = await userTestManger.loginUser(defaults.login, defaults.password)
+    });
+    it("(400) ❌ Shouldn`t update post with empty input", async () => {
+      const createdBlog = await blogsTestManager.createBlogInDb(defaults.name,defaults.description,defaults.websiteUrl)
+      const createdPost = await postsTestManager.createPostInDbWIthBlog(createdBlog.id)
 
       const res = await request(app.getHttpServer())
-        .put(`/posts/${post._id.toString()}/like-status`)
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({likeStatus: "Like"})
-        .expect(204)
-      const postWithLike1 = await postsTestManager.getPostViewById(post._id.toString(), accessToken);
-      expect(postWithLike1).not.toBeUndefined()
-      expect(postWithLike1.extendedLikesInfo.likesCount).toBe(1)
-      expect(postWithLike1.extendedLikesInfo.dislikesCount).toBe(0)
-      expect(postWithLike1.extendedLikesInfo.myStatus).toBe(LikeStatus.Like)
-      expect(postWithLike1.extendedLikesInfo.newestLikes).toEqual([
-        {
-          addedAt: expect.any(String),
-          login: createdUser.login,
-          userId: createdUser._id.toString(),
+        .put(`/posts/${createdPost._id.toString()}`)
+        .set('Authorization', basicAuthString)
+        .send({})
+        .expect(400)
+    })
+    it("(400) ❌ Shouldn`t update post with invalid input data(incorrect title)", async () => {
+      const createdBlog = await blogsTestManager.createBlogInDb(defaults.name,defaults.description,defaults.websiteUrl)
+      const createdPost = await postsTestManager.createPostInDbWIthBlog(createdBlog.id)
 
-        }])
-      const res2 = await request(app.getHttpServer())
-        .put(`/posts/${post._id.toString()}/like-status`)
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({likeStatus: "Dislike"})
+      const invalidTitle = 4
+      const res = await request(app.getHttpServer())
+        .put(`/posts/${createdPost._id.toString()}`)
+        .set('Authorization', basicAuthString)
+        .send({
+          title: invalidTitle,
+          shortDescription: defaults.shortDescription,
+          content: defaults.content,
+          blogId: createdBlog.id,
+        })
+        .expect(400)
+    })
+  })
+  describe('DELETE(/posts/:postId) delete post e2e tests', () => {
+    beforeEach(async () => {
+      // const result = await initSettings((moduleBuilder) =>
+      //   moduleBuilder.overrideProvider(JwtService).useValue(
+      //     new JwtService({
+      //       secret: 'secret_key',
+      //       signOptions: { expiresIn: '1m' },
+      //     }),
+      //   ),
+      // );
+      const result = await initSettings();
+      app = result.app;
+      postsTestManager = result.postsTestManager;
+      userTestManger = result.userTestManger
+    });
+    afterEach(async () => {
+      await deleteAllData(app);
+      jest.restoreAllMocks();
+    });
+
+    it('(204) ✅ Should delete post', async () => {
+      const createdBlog = await blogsTestManager.createBlogInDb(defaults.name,defaults.description,defaults.websiteUrl)
+      const createdPost = await postsTestManager.createPostInDbWIthBlog(createdBlog.id)
+
+      const res = await request(app.getHttpServer())
+        .delete(`/posts/${createdPost._id.toString()}`)
+        .set('Authorization', basicAuthString)
+        .send({
+          title: defaults.title,
+          shortDescription: defaults.shortDescription,
+          content: defaults.content,
+          blogId: createdBlog.id,
+        })
         .expect(204)
-      const postWithLike2 = await postsTestManager.getPostViewById(post._id.toString(), accessToken);
-      expect(postWithLike2).not.toBeUndefined()
-      expect(postWithLike2.extendedLikesInfo.likesCount).toBe(0)
-      expect(postWithLike2.extendedLikesInfo.dislikesCount).toBe(1)
-      expect(postWithLike2.extendedLikesInfo.myStatus).toBe(LikeStatus.Dislike)
-      expect(postWithLike2.extendedLikesInfo.newestLikes).toEqual([])
+    });
+    it("(404) ❌ Shouldn`t delete post with another postId", async () => {
+      const createdBlog = await blogsTestManager.createBlogInDb(defaults.name,defaults.description,defaults.websiteUrl)
+      const createdPost = await postsTestManager.createPostInDbWIthBlog(createdBlog.id)
+
+      const res = await request(app.getHttpServer())
+        .delete(`/posts/${createdBlog.id}`)
+        .set('Authorization', basicAuthString)
+        .expect(404)
+    })
+    it("(401) ❌ Shouldn`t delete post with invalid authorization", async () => {
+      const createdBlog = await blogsTestManager.createBlogInDb(defaults.name,defaults.description,defaults.websiteUrl)
+      const createdPost = await postsTestManager.createPostInDbWIthBlog(createdBlog.id)
+
+      const invalidAuthString = "invalid"
+      const res = await request(app.getHttpServer())
+        .delete(`/posts/${createdPost._id.toString()}`)
+        .set('Authorization', invalidAuthString)
+        .expect(401)
+    })
+    it("(400) ❌ Shouldn`t delete post with invalid uri", async () => {
+      const createdBlog = await blogsTestManager.createBlogInDb(defaults.name,defaults.description,defaults.websiteUrl)
+      const createdPost = await postsTestManager.createPostInDbWIthBlog(createdBlog.id)
+
+      const invalidUri = "invalid"
+      const res = await request(app.getHttpServer())
+        .delete(`/posts/${invalidUri}`)
+        .set('Authorization', basicAuthString)
+        .expect(400)
     })
   })
 });

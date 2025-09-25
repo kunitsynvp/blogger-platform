@@ -3,12 +3,14 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus, } from '@nestjs/common';
 import { DomainException } from '../domain-exceptions';
 import { DomainExceptionCode } from '../domain-exception-codes';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 
 
 @Catch(DomainException)
 export class DomainHttpExceptionsFilter implements ExceptionFilter {
   catch(exception: DomainException, host: ArgumentsHost): void {
+    console.log(exception);
+    console.log(exception.extensions?.errorsMessages);
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
 
@@ -49,8 +51,12 @@ export class DomainHttpExceptionsFilter implements ExceptionFilter {
       case DomainExceptionCode.Unauthorized:
       case DomainExceptionCode.InvalidPassword:
         return HttpStatus.UNAUTHORIZED;
+        //Too many requests
+      case DomainExceptionCode.TooManyRequests:
+        return HttpStatus.TOO_MANY_REQUESTS
       //Internal server error
       case DomainExceptionCode.InternalServerError:
+      case DomainExceptionCode.ValidationEnvError:
         return HttpStatus.INTERNAL_SERVER_ERROR;
       default:
         return HttpStatus.I_AM_A_TEAPOT;
