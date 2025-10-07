@@ -1,10 +1,9 @@
-import { UsersRepository } from '../../../infrastructure/users.repository';
-import { UserDocument } from '../../../domain/user/user.entity';
 import { ConfirmationCodeDto } from '../../../api/input-dto/confirmation-code-dto';
-import { UsersFields } from '../../../domain/user/enums/users-fields';
 import { DomainException } from '../../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { UsersSqlRepository } from '../../../infrastructure/users.sql.repository';
+import { User } from '../../../domain/user/user.entity';
 
 export class ConfirmEmailCommand {
   constructor(public dto: ConfirmationCodeDto) {}
@@ -13,20 +12,19 @@ export class ConfirmEmailCommand {
 export class ConfirmEmailUseCase
   implements ICommandHandler<ConfirmEmailCommand>
 {
-  constructor(private usersRepository: UsersRepository) {}
+  constructor(private usersRepository: UsersSqlRepository) {}
 
   async execute(command: ConfirmEmailCommand): Promise<void> {
-    const user: UserDocument | null = await this.usersRepository.findByField(
-      UsersFields.EmailConfirmationConfCode,
+    const user: User | null = await this.usersRepository.findByConfirmationCode(
       command.dto.code,
     );
     this.checkExceptions(user!);
 
     user!.confirmEmail();
 
-    await this.usersRepository.save(user!);
+    await this.usersRepository.confirmUser(user!);
   }
-  private checkExceptions(user: UserDocument) {
+  private checkExceptions(user: User) {
     if (!user) {
       throw new DomainException({
         code: DomainExceptionCode.ConfirmationCodeNotFound,
@@ -34,21 +32,21 @@ export class ConfirmEmailUseCase
         field: 'code',
       });
     }
-    if (user.emailConfirmation.isConfirmed) {
+    if (user.isConfirmed) {
       throw new DomainException({
         code: DomainExceptionCode.EmailAlreadyConfirmed,
         message: 'email already confirmed',
         field: 'code',
       });
     }
-    if (!user.emailConfirmation.expirationDate) {
+    if (!user.confirmationExpDate) {
       throw new DomainException({
         code: DomainExceptionCode.ConfirmationCodeExpired,
         message: 'confirmation code expired',
         field: 'code',
       });
     }
-    if (user.emailConfirmation.expirationDate < new Date()) {
+    if (user.confirmationExpDate < new Date()) {
       throw new DomainException({
         code: DomainExceptionCode.ConfirmationCodeExpired,
         message: 'confirmation code expired',

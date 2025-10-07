@@ -1,22 +1,16 @@
 import { type INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { UsersRepository } from '../../../../src/modules/user-accounts/infrastructure/users.repository';
-import { CommandBus } from '@nestjs/cqrs';
 import { CreateBlogInputDto } from '../../../../src/modules/blogger-platform/blogs/api/input-dto/blogs-create-dto';
 import { BlogsViewDto } from '../../../../src/modules/blogger-platform/blogs/api/view-dto/blogs-view-dto';
-import { BlogsRepository } from '../../../../src/modules/blogger-platform/blogs/infrastructure/blogs.repository';
+import { BlogsSqlRepository } from '../../../../src/modules/blogger-platform/blogs/infrastructure/blogs.sql.repository';
 
 export class BlogsTestManager {
   private readonly BasicAuthString: string = 'Basic YWRtaW46cXdlcnR5';
 
-  private blogsQueryRepository: UsersRepository;
-  private commandBus: CommandBus;
-  private blogsRepository: BlogsRepository;
+  private blogsRepository: BlogsSqlRepository;
 
   constructor(private app: INestApplication) {
-    this.blogsQueryRepository = this.app.get<UsersRepository>(UsersRepository);
-    this.blogsRepository = this.app.get<BlogsRepository>(BlogsRepository);
-    this.commandBus = this.app.get<CommandBus>(CommandBus);
+    this.blogsRepository = this.app.get<BlogsSqlRepository>(BlogsSqlRepository);
   }
 
   async createBlogInDb(
@@ -38,7 +32,7 @@ export class BlogsTestManager {
 
     return res.body;
   }
-  async deleteBlogById(id: string): Promise<void> {
-    return await this.blogsRepository.deleteBlog(id)
+  async deleteBlogById(id: number): Promise<void> {
+    //return await this.blogsRepository.deleteBlog(id) //TODO NORMAL TEST LOGIC
   }
 }

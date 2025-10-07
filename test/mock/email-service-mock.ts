@@ -1,5 +1,5 @@
 import { EmailService } from '../../src/modules/notifications/application/email.service';
-import { UserDocument } from '../../src/modules/user-accounts/domain/user/user.entity';
+import { UserDocument } from '../../src/modules/user-accounts/domain/user/user.mongoose.entity';
 
 export class MockedEmailService extends EmailService{
 

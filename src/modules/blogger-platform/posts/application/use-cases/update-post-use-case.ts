@@ -1,24 +1,24 @@
-import { PostsRepository } from '../../infrastructure/posts.repository';
-import { BlogsRepository } from '../../../blogs/infrastructure/blogs.repository';
 import { UpdatePostDomainDto } from '../../domain/dto/update-post-domain-dto';
 import { UpdatePostDto } from '../../api/input-dto/update-post-dto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { PostsSqlRepository } from '../../infrastructure/posts.sql.repository';
+import { BlogsSqlRepository } from '../../../blogs/infrastructure/blogs.sql.repository';
 
 export class UpdatePostCommand {
   constructor(
-    public id: string,
+    public id: number,
     public dto: UpdatePostDto,
   ) {}
 }
 @CommandHandler(UpdatePostCommand)
 export class UpdatePostUseCase implements ICommandHandler<UpdatePostCommand> {
   constructor(
-    private postsRepository: PostsRepository,
-    private blogsRepository: BlogsRepository,
+    private postsRepository: PostsSqlRepository,
+    private blogsRepository: BlogsSqlRepository,
   ) {}
 
   async execute(command: UpdatePostCommand): Promise<void> {
-    const foundBlog = await this.blogsRepository.findBlogsByIdOrFail(
+    await this.blogsRepository.findBlogByIdOrFail(
       command.dto.blogId,
     );
 
@@ -30,12 +30,11 @@ export class UpdatePostUseCase implements ICommandHandler<UpdatePostCommand> {
       command.dto.title,
       command.dto.shortDescription,
       command.dto.content,
-      command.dto.blogId,
-      foundBlog.name,
+      command.dto.blogId
     );
 
     postForUpdate.updatePost(updateDto);
 
-    await this.postsRepository.save(postForUpdate);
+    //await this.postsRepository.save(postForUpdate); //TODO logic after 18hw
   }
 }

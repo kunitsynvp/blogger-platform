@@ -3,7 +3,6 @@ import { DynamicModule, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserAccountsModule } from './modules/user-accounts/user-accounts.module';
-import { MongooseModule } from '@nestjs/mongoose';
 import { BloggerPlatformModule } from './modules/blogger-platform/bloger-platform.module';
 import { TestingModule } from './testing/testing.module';
 import { DomainHttpExceptionsFilter } from './core/exceptions/exception-filters/domain-exceptions-filter';
@@ -16,19 +15,20 @@ import { configModule } from './config-module';
 import { CoreConfig } from './core/config/core-config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
+
 @Module({
   imports: [
     configModule,
     //mongodb+srv://admin:admin@learningcluster.qtjicyx.mongodb.net/?retryWrites=true&w=majority&appName=LearningCluster
     CoreModule,
-    MongooseModule.forRootAsync({
-      useFactory: (coreConfig: CoreConfig) => {
-        return {
-          uri: coreConfig.mongodb_URI
-        }
-      },
-      inject:[CoreConfig]
-    }),
+    // MongooseModule.forRootAsync({
+    //   useFactory: (coreConfig: CoreConfig) => {
+    //     return {
+    //       uri: coreConfig.mongodb_URI
+    //     }
+    //   },
+    //   inject:[CoreConfig]
+    // }),
     ThrottlerModule.forRootAsync(
       {
         useFactory: (coreConfig: CoreConfig) => [

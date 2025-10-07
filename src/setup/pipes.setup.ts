@@ -38,7 +38,6 @@ export const errorFormatter = (
 export function pipesSetup(app: NestExpressApplication) {
   //Глобальный пайп для валидации и трансформации входящих данных.
   app.useGlobalPipes(
-    //new ObjectIdValidationTransformationPipe(),
     new ValidationPipe({
       //class-transformer создает экземпляр dto
       //соответственно применятся значения по-умолчанию

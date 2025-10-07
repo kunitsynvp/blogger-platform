@@ -1,12 +1,12 @@
 import { type INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { PostDocument } from '../../../../src/modules/blogger-platform/posts/domain/post.entity';
 import { BlogsTestManager } from './blogs-test-manager';
-import { PostsRepository } from '../../../../src/modules/blogger-platform/posts/infrastructure/posts.repository';
 import { PostsViewDto } from '../../../../src/modules/blogger-platform/posts/api/view-dto/posts-view-dto';
 import { LikeStatus } from '../../../../src/modules/blogger-platform/comments/domain/enums/like-status-enum';
 import { delay } from '../delay';
 import { BlogsViewDto } from '../../../../src/modules/blogger-platform/blogs/api/view-dto/blogs-view-dto';
+import { PostsSqlRepository } from '../../../../src/modules/blogger-platform/posts/infrastructure/posts.sql.repository';
+import { Post } from '../../../../src/modules/blogger-platform/posts/domain/post.entity';
 
 export class PostsTestManager {
   private readonly BasicAuthString: string = 'Basic YWRtaW46cXdlcnR5';
@@ -17,15 +17,15 @@ export class PostsTestManager {
     content: 'newContent',
   };
 
-  private postsRepository: PostsRepository;
+  private postsRepository: PostsSqlRepository;
   private blogsTestManager: BlogsTestManager;
 
   constructor(private app: INestApplication) {
-    this.postsRepository = this.app.get<PostsRepository>(PostsRepository);
+    this.postsRepository = this.app.get<PostsSqlRepository>(PostsSqlRepository);
     this.blogsTestManager = new BlogsTestManager(this.app);
   }
 
-  async createPostInDb(): Promise<PostDocument> {
+  async createPostInDb(): Promise<Post> {
     const createdBlog = await this.blogsTestManager.createBlogInDb();
     const createdPost = await request(this.app.getHttpServer())
       .post(this.postPostPath)
@@ -38,7 +38,7 @@ export class PostsTestManager {
       });
     return this.postsRepository.findPostByIdOrFail(createdPost.body.id);
   }
-  async createPostInDbWIthBlog(blogId: string): Promise<PostDocument> {
+  async createPostInDbWIthBlog(blogId: number): Promise<Post> {
     const createdPost = await request(this.app.getHttpServer())
       .post(this.postPostPath)
       .set('Authorization', this.BasicAuthString)
@@ -52,9 +52,9 @@ export class PostsTestManager {
   }
   async createPostsInDb(
     count: number,
-  ): Promise<{ posts: PostDocument[]; blog: BlogsViewDto }> {
+  ): Promise<{ posts: Post[]; blog: BlogsViewDto }> {
     const createdBlog = await this.blogsTestManager.createBlogInDb();
-    const posts = [] as PostDocument[];
+    const posts = [] as Post[];
     for (let i = 0; i < count; i++) {
       const createdPost = await request(this.app.getHttpServer())
         .post(this.postPostPath)
@@ -72,11 +72,11 @@ export class PostsTestManager {
     }
     return { posts: posts, blog: createdBlog };
   }
-  async getPostById(id: string): Promise<PostDocument> {
+  async getPostById(id: number): Promise<Post> {
     return this.postsRepository.findPostByIdOrFail(id);
   }
   async getPostViewById(
-    id: string,
+    id: number,
     accessToken?: string,
   ): Promise<PostsViewDto> {
     if (accessToken) {

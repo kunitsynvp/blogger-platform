@@ -1,4 +1,4 @@
-import { SessionDocument } from '../../domain/sessions/session.entity';
+import { Session } from '../../domain/sessions/session.entity';
 
 export class SessionViewDto {
   ip: string
@@ -6,11 +6,11 @@ export class SessionViewDto {
   lastActiveDate: string
   deviceId: string
 
-  static mapToView(session: SessionDocument) {
+  static mapToView(session: Session): SessionViewDto {
     return {
       ip: session.ip,
       title: session.title,
-      lastActiveDate: session.lastActiveDate,
+      lastActiveDate: session.iat.toISOString(),
       deviceId: session.deviceId,
     }
   }

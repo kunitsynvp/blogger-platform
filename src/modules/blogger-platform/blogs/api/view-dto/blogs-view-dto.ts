@@ -1,4 +1,4 @@
-import { BlogDocument } from '../../domain/blog.entity';
+import { Blog } from '../../domain/blog.entity';
 
 export class BlogsViewDto {
   id: string;
@@ -7,15 +7,16 @@ export class BlogsViewDto {
   websiteUrl: string;
   createdAt: string;
   isMembership: boolean;
-  static mapToView(dto: BlogDocument){
-    const blog = new BlogsViewDto();
-    blog.id = dto._id.toString();
-    blog.name = dto.name;
-    blog.description = dto.description;
-    blog.websiteUrl = dto.websiteUrl;
-    blog.createdAt = dto.createdAt.toISOString();
-    blog.isMembership = dto.isMembership;
 
-    return blog;
+  static mapToView(blog: Blog){
+    const viewDto = new BlogsViewDto();
+    viewDto.id = blog.id.toString();
+    viewDto.name = blog.name;
+    viewDto.description = blog.description;
+    viewDto.websiteUrl = blog.websiteUrl;
+    viewDto.createdAt = blog.createdAt.toISOString();
+    viewDto.isMembership = blog.isMembership;
+
+    return viewDto;
   }
 }

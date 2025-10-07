@@ -2,8 +2,6 @@ import { type INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { CreateUserInputDto } from '../../../../src/modules/user-accounts/api/input-dto/create-user-dto';
 import { UsersViewDto } from '../../../../src/modules/user-accounts/api/view-dto/users-view-dto';
-import { UserDocument } from '../../../../src/modules/user-accounts/domain/user/user.entity';
-import { UsersRepository } from '../../../../src/modules/user-accounts/infrastructure/users.repository';
 import { CreateUserCommand } from '../../../../src/modules/user-accounts/application/use-cases/users/create-user-use-case';
 import { CommandBus } from '@nestjs/cqrs';
 import { JwtService } from '@nestjs/jwt';
@@ -11,18 +9,20 @@ import {
   ACCESS_TOKEN_INJECT_TOKEN,
   REFRESH_TOKEN_INJECT_TOKEN,
 } from '../../../../src/modules/user-accounts/constants/jwt-tokens-inject-constants';
+import { UsersSqlRepository } from '../../../../src/modules/user-accounts/infrastructure/users.sql.repository';
+import { User } from '../../../../src/modules/user-accounts/domain/user/user.entity';
 
 
 export class UsersTestManager {
   private readonly BasicAuthString: string = 'Basic YWRtaW46cXdlcnR5';
 
-  private usersRepository: UsersRepository;
+  private usersRepository: UsersSqlRepository;
   private commandBus: CommandBus;
   private jwtAccessTokenService: JwtService
   private jwtRefreshTokenService: JwtService
 
   constructor(private app: INestApplication) {
-    this.usersRepository = this.app.get<UsersRepository>(UsersRepository);
+    this.usersRepository = this.app.get<UsersSqlRepository>(UsersSqlRepository);
     this.commandBus = this.app.get<CommandBus>(CommandBus);
     this.jwtAccessTokenService = this.app.get<JwtService>(ACCESS_TOKEN_INJECT_TOKEN)
     this.jwtRefreshTokenService = this.app.get<JwtService>(REFRESH_TOKEN_INJECT_TOKEN)
@@ -31,7 +31,7 @@ export class UsersTestManager {
     login?: string,
     password?: string,
     email?: string,
-  ): Promise<UserDocument> {
+  ): Promise<User> {
     const creationData: CreateUserInputDto = {
       login: login ?? 'newLogin1',
       password: password ?? 'newPassword',
@@ -91,7 +91,7 @@ export class UsersTestManager {
 
     return {users: users, accessTokens: accessTokens };
   }
-  async createUserBySA(dto?: CreateUserInputDto): Promise<UserDocument> {
+  async createUserBySA(dto?: CreateUserInputDto): Promise<User> {
     const createDto: CreateUserInputDto = {
       login: dto?.login || 'newLogin',
       email: dto?.email || 'newEmail@mail.ru',
@@ -104,20 +104,20 @@ export class UsersTestManager {
     const createdUser = await this.usersRepository.findById(createdUserId);
     return createdUser!;
   }
-  async setPassRecoveryCodeForUser(user: UserDocument) {
+  async setPassRecoveryCodeForUser(user: User) {
     await request(this.app.getHttpServer())
       .post('/auth/password-recovery')
       .send({
         email: user.email,
       })
       .expect(204);
-    return await this.usersRepository.findById(user._id.toString());
+    return await this.usersRepository.findById(user.id);
   }
 
   async loginUser(
     login: string,
     plainPassword: string,
-  ): Promise<{ accessToken: string; refreshToken: string, user: UserDocument }> {
+  ): Promise<{ accessToken: string; refreshToken: string, user: User }> {
     const response = await request(this.app.getHttpServer())
       .post('/auth/login')
       .send({
@@ -132,7 +132,7 @@ export class UsersTestManager {
 
     return { accessToken: response.body.accessToken,refreshToken: refreshToken, user: user! };
   }
-  async findUserById(userId: string): Promise<UserDocument | null> {
+  async findUserById(userId: number): Promise<User | null> {
     return await this.usersRepository.findById(userId);
   }
   async createSeveralAccessAndRefreshTokensWithSeveralUsers(
@@ -140,15 +140,15 @@ export class UsersTestManager {
   ): Promise<{
     accessTokens: Array<string>;
     refreshTokens: Array<string>;
-    users: UserDocument[];
+    users: User[];
   }> {
-    let createdUser: UserDocument;
+    let createdUser: User;
     let login;
     let password;
     let email;
     const accessTokensArray: Array<string> = [];
     const refreshTokensArray = [];
-    const users: UserDocument[] = [];
+    const users: User[] = [];
     for (let i = 0; i < amount; i++) {
       login = `login${i}`;
       password = `password${i}`;
@@ -184,26 +184,26 @@ export class UsersTestManager {
       users: users,
     };
   }
-  async decodeAccessToken(accessToken: string): Promise<{userId: string,deviceId: string, iat: string,exp: string}>{
+  async decodeAccessToken(accessToken: string): Promise<{userId: string,deviceId: string, iat: Date,exp: Date}>{
     const decodedToken = this.jwtAccessTokenService.decode(accessToken);
     return {
       userId: decodedToken.userId,
       deviceId: decodedToken.deviceId,
-      iat: new Date(+decodedToken.iat * 1000).toISOString(),
-      exp: new Date(+decodedToken.exp * 1000).toISOString(),
+      iat: new Date(+decodedToken.iat * 1000),
+      exp: new Date(+decodedToken.exp * 1000),
     }
   }
-  async decodeRefreshToken(refreshToken: string): Promise<{userId: string,deviceId: string, iat: string,exp: string}>{
+  async decodeRefreshToken(refreshToken: string): Promise<{userId: string,deviceId: string, iat: Date,exp: Date}>{
     const decodedToken = this.jwtRefreshTokenService.decode(refreshToken);
 
     return {
       userId: decodedToken.userId,
       deviceId: decodedToken.deviceId,
-      iat: new Date(+decodedToken.iat * 1000).toISOString(),
-      exp: new Date(+decodedToken.exp * 1000).toISOString(),
+      iat: new Date(+decodedToken.iat * 1000),
+      exp: new Date(+decodedToken.exp * 1000),
     }
   }
-  async deleteUserById(userId: string): Promise<void> {
+  async deleteUserById(userId: number): Promise<void> {
     return await this.usersRepository.deleteOrFail(userId)
   }
 }

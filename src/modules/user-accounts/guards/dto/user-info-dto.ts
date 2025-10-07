@@ -1,11 +1,11 @@
 export class UserInfoDto {
   ip: string
   title: string
-  userId: string;
+  userId: number;
   deviceId: string;
-  iat: string;
-  exp: string;
-  constructor(ip: string, title: string, userId: string, deviceId: string, iat: string, exp: string) {
+  iat: Date;
+  exp: Date;
+  constructor(ip: string, title: string, userId: number, deviceId: string, iat: Date, exp:Date) {
     this.ip = ip;
     this.title = title;
     this.userId = userId;

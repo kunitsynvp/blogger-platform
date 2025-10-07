@@ -1,20 +1,19 @@
-import { BlogsRepository } from '../../infrastructure/blogs.repository';
 import { UpdateBlogInputDto } from '../../api/input-dto/blogs-update-dto';
 import { UpdateBlogDomainDto } from '../../domain/dto/update-blog-domain-dto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { BlogsSqlRepository } from '../../infrastructure/blogs.sql.repository';
 
 export class UpdateBlogCommand {
   constructor(
-    public id: string,
+    public id: number,
     public dto: UpdateBlogInputDto,
   ) {}
 }
 @CommandHandler(UpdateBlogCommand)
 export class UpdateBlogUseCase implements ICommandHandler<UpdateBlogCommand> {
-  constructor(private blogsRepository: BlogsRepository) {}
+  constructor(private blogsRepository: BlogsSqlRepository) {}
   async execute(command: UpdateBlogCommand): Promise<void> {
-    console.log('update blog command');
-    const foundBlog = await this.blogsRepository.findBlogsByIdOrFail(
+    const foundBlog = await this.blogsRepository.findBlogByIdOrFail(
       command.id,
     );
 
@@ -24,6 +23,8 @@ export class UpdateBlogUseCase implements ICommandHandler<UpdateBlogCommand> {
     domainDto.websiteUrl = command.dto.websiteUrl;
 
     foundBlog.updateBlog(domainDto);
-    await this.blogsRepository.save(foundBlog);
+    foundBlog.id = command.id
+
+    await this.blogsRepository.updateBlog(foundBlog);
   }
 }

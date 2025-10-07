@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { UsersRepository } from './users.repository';
 import { MeViewDto } from '../api/view-dto/me-view-dto';
+import { UsersSqlRepository } from './users.sql.repository';
 
 @Injectable()
 export class AuthQueryRepository {
-  constructor(private usersRepository: UsersRepository) {}
+  constructor(private usersRepository: UsersSqlRepository) {}
 
-  async me(userId: string): Promise<MeViewDto> {
+  async me(userId: number): Promise<MeViewDto> {
     const user = await this.usersRepository.findByIdOrFail(userId);
     return MeViewDto.mapToView(user);
   }

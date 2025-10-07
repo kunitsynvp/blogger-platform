@@ -1,13 +1,13 @@
 export class CreateCommentCommandDto {
-  postId: string;
-  userId: string;
+  postId: number;
+  userId: number;
   content: string;
-  private constructor(postId: string, userId: string, content: string) {
+  private constructor(postId: number, userId: number, content: string) {
     this.postId = postId;
     this.userId = userId;
     this.content = content;
   }
-  static createDto(postId: string, userId: string,content: string) {
+  static createDto(postId: number, userId: number,content: string) {
     return new CreateCommentCommandDto(
       postId,
       userId,

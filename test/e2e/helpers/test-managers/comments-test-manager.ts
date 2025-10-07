@@ -1,35 +1,25 @@
 import { type INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { UsersRepository } from '../../../../src/modules/user-accounts/infrastructure/users.repository';
-import { CommandBus } from '@nestjs/cqrs';
-import { PostsTestManager } from './posts-test-manager';
-import { CommentsQueryRepository } from '../../../../src/modules/blogger-platform/comments/infrastructure/comments-query.repository';
 import { CommentsViewDto } from '../../../../src/modules/blogger-platform/comments/api/view-dto/comments-view-dto';
 import { LikeStatus } from '../../../../src/modules/blogger-platform/comments/domain/enums/like-status-enum';
+import { CommentsSqlQueryRepository } from '../../../../src/modules/blogger-platform/comments/infrastructure/comments-sql-query.repository';
 
 export class CommentsTestManager {
-
-  private usersRepository: UsersRepository;
-  private commandBus: CommandBus;
-  private postsTestManager: PostsTestManager;
-  private commentsQueryRepository: CommentsQueryRepository;
+  private commentsQueryRepository: CommentsSqlQueryRepository;
   private defaults: {
     content: 'newVeryLongContentAtLeast21Characters';
   };
 
   constructor(private app: INestApplication) {
-    this.usersRepository = this.app.get<UsersRepository>(UsersRepository);
-    this.commandBus = this.app.get<CommandBus>(CommandBus);
-    this.postsTestManager = new PostsTestManager(this.app);
-    this.commentsQueryRepository = this.app.get<CommentsQueryRepository>(
-      CommentsQueryRepository,
+    this.commentsQueryRepository = this.app.get<CommentsSqlQueryRepository>(
+      CommentsSqlQueryRepository,
     );
   }
   async createCommentInForPost(
     content: string = this.defaults.content,
     accessToken: string,
-    userId: string,
-    postId: string,
+    userId: number,
+    postId: number,
   ): Promise<CommentsViewDto> {
     const commentResult = await request(this.app.getHttpServer())
       .post(`/posts/${postId}/comments`)

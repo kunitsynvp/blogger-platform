@@ -1,25 +1,35 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-import { CommentsQueryRepository } from '../../infrastructure/comments-query.repository';
 import { CommentsViewDto } from '../../api/view-dto/comments-view-dto';
 import { CommentsQueryDto } from '../../api/input-dto/comments-query-dto';
 import { PaginatedViewDto } from '../../../../../core/dto/base.paginated.view-dto';
-import { PostsQueryRepository } from '../../../posts/infrastructure/posts-query.repository';
+import { PostsSqlQueryRepository } from '../../../posts/infrastructure/posts-sql.query.repository';
+import { CommentsSqlQueryRepository } from '../../infrastructure/comments-sql-query.repository';
 
 export class GetCommentsForPostQuery {
-  constructor(public queryParams: CommentsQueryDto,
-              public postId: string,
-              public user?: string,) {
-  }
+  constructor(
+    public queryParams: CommentsQueryDto,
+    public postId: number,
+    public userId?: number,
+  ) {}
 }
 @QueryHandler(GetCommentsForPostQuery)
-export class GetCommentsForPostQueryHandler implements IQueryHandler<
-  GetCommentsForPostQuery,
-  PaginatedViewDto<CommentsViewDto[]>>{
-  constructor(private commentsQueryRepository: CommentsQueryRepository,
-              private postsQueryRepository: PostsQueryRepository,) {}
+export class GetCommentsForPostQueryHandler
+  implements
+    IQueryHandler<GetCommentsForPostQuery, PaginatedViewDto<CommentsViewDto[]>>
+{
+  constructor(
+    private commentsQueryRepository: CommentsSqlQueryRepository,
+    private postsQueryRepository: PostsSqlQueryRepository,
+  ) {}
 
-  async execute(query: GetCommentsForPostQuery): Promise<PaginatedViewDto<CommentsViewDto[]>>{
-    await this.postsQueryRepository.findByIdOrFail(query.postId)
-    return await this.commentsQueryRepository.findAllComments(query.queryParams,query.postId,query.user);
+  async execute(
+    query: GetCommentsForPostQuery,
+  ): Promise<PaginatedViewDto<CommentsViewDto[]>> {
+    await this.postsQueryRepository.findByIdOrFail(query.postId);
+    return await this.commentsQueryRepository.findAllComments(
+      query.queryParams,
+      query.postId,
+      query.userId,
+    );
   }
 }

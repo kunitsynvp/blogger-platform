@@ -1,6 +1,5 @@
 import { LikeStatus } from '../../domain/enums/like-status-enum';
-import { CommentDocument } from '../../domain/comment.entity';
-import { CommentLikesInfoDto } from './comment-likes-info-dto';
+import { CommentCompoundDbType } from '../../domain/comment.entity';
 
 export class CommentsViewDto {
   id: string;
@@ -15,19 +14,19 @@ export class CommentsViewDto {
     dislikesCount: number;
     myStatus: LikeStatus;
   };
-  static mapToView(comment: CommentDocument, mappingDto: CommentLikesInfoDto): CommentsViewDto {
+  static mapToView(comment: CommentCompoundDbType): CommentsViewDto {
     const dto = new CommentsViewDto();
-    dto.id = comment._id.toString();
+    dto.id = comment.id.toString();
     dto.content = comment.content;
     dto.commentatorInfo = {
-      userId: comment.commentatorInfo.userId.toString(),
-      userLogin: comment.commentatorInfo.userLogin,
+      userId: comment.userId.toString(),
+      userLogin: comment.userLogin,
     };
     dto.createdAt = comment.createdAt.toISOString();
     dto.likesInfo = {
-      likesCount: mappingDto.likesCount,
-      dislikesCount: mappingDto.dislikesCount,
-      myStatus: mappingDto.myStatus,
+      likesCount: +comment.likesCount,
+      dislikesCount: +comment.dislikesCount,
+      myStatus: comment.myStatus,
     };
     return dto;
   }

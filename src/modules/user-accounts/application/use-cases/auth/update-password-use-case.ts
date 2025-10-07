@@ -1,11 +1,10 @@
-import { UsersRepository } from '../../../infrastructure/users.repository';
-import { UserDocument } from '../../../domain/user/user.entity';
-import { UsersFields } from '../../../domain/user/enums/users-fields';
 import { DomainException } from '../../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
 import { NewPasswordDto } from '../../../api/input-dto/new-password-dto';
 import { CryptoService } from '../../crypto.service';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { UsersSqlRepository } from '../../../infrastructure/users.sql.repository';
+import { User } from '../../../domain/user/user.entity';
 
 export class UpdatePasswordCommand {
   constructor(public dto: NewPasswordDto) {}
@@ -15,25 +14,22 @@ export class UpdatePasswordUseCase
   implements ICommandHandler<UpdatePasswordCommand>
 {
   constructor(
-    private usersRepository: UsersRepository,
+    private usersRepository: UsersSqlRepository,
     private cryptoService: CryptoService,
   ) {}
 
   async execute(command: UpdatePasswordCommand): Promise<void> {
-    const foundUser: UserDocument | null =
-      await this.usersRepository.findByField(
-        UsersFields.PasswordRecoveryRecCode,
-        command.dto.recoveryCode,
-      );
+    const foundUser: User | null =
+      await this.usersRepository.findByRecoveryCode(command.dto.recoveryCode);
     this.checkExceptions(foundUser!);
 
     const newHashPassword = await this.cryptoService.generateHash(
       command.dto.newPassword,
     );
     foundUser!.updatePassword(newHashPassword);
-    await this.usersRepository.save(foundUser!);
+    await this.usersRepository.updatePassword(foundUser!);
   }
-  private checkExceptions(user: UserDocument) {
+  private checkExceptions(user: User) {
     if (!user) {
       throw new DomainException({
         code: DomainExceptionCode.PasswordRecoveryCodeExpired,
@@ -42,15 +38,14 @@ export class UpdatePasswordUseCase
       });
     }
 
-    if (!user.passwordRecovery.expirationDate) {
+    if (!user.recoveryExpDate) {
       throw new DomainException({
         code: DomainExceptionCode.PasswordRecoveryCodeExpired,
         message: 'password recovery expired',
         field: 'recoveryCode',
       });
     }
-
-    if (user.passwordRecovery.expirationDate < new Date()) {
+    if (user.recoveryExpDate < new Date()) {
       throw new DomainException({
         code: DomainExceptionCode.PasswordRecoveryCodeExpired,
         message: 'password recovery expired',

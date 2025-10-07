@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   HttpCode,
   Param,
@@ -15,12 +14,6 @@ import { PostsQueryDto } from './input-dto/posts-query-dto';
 import { PaginatedViewDto } from '../../../../core/dto/base.paginated.view-dto';
 import { CommentsViewDto } from '../../comments/api/view-dto/comments-view-dto';
 import { PostsViewDto } from './view-dto/posts-view-dto';
-import { CreatePostForBlogDto } from './input-dto/create-post-for-blog-dto';
-import { UpdatePostDto } from './input-dto/update-post-dto';
-import { ObjectIdValidationPipe } from '../../../../core/pipes/object-id-validation-pipe';
-import { CreatePostCommand } from '../application/use-cases/create-post-use-case';
-import { UpdatePostCommand } from '../application/use-cases/update-post-use-case';
-import { DeletePostCommand } from '../application/use-cases/delete-post-use-case';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { GetCommentsForPostQuery } from '../../comments/application/queries/get-comments-for-post-query';
 import { GetPostsQuery } from '../application/queries/get-posts-query';
@@ -37,7 +30,7 @@ import { GetCommentByIdOrFailQuery } from '../../comments/application/queries/ge
 import { LikeStatusDto } from '../../comments-likes/api/input-dto/like-status-input-dto';
 import { PostLikeStatusCommand } from '../../posts-likes/application/use-cases/post-like-status-use-case';
 import { CreatePostLikeCommandDto } from '../../posts-likes/application/dto/create-post-like-command-dto';
-import { BasicAuthGuard } from '../../../user-accounts/guards/basic/basic-auth-guard';
+import { CustomParseIntPipe } from '../../../../core/pipes/int-transformation-pipe';
 
 @Controller('posts')
 export class PostsController {
@@ -49,7 +42,7 @@ export class PostsController {
   @Get(':postId/comments')
   @UseGuards(JwtOptionalAuthGuard)
   async getCommentsForPost(
-    @Param('postId', ObjectIdValidationPipe) postId: string,
+    @Param('postId', CustomParseIntPipe) postId: number,
     @Query() query: CommentsQueryDto,
     @OptionalCurrentUser() user: UserContextDto,
   ): Promise<PaginatedViewDto<CommentsViewDto[]>> {
@@ -71,24 +64,24 @@ export class PostsController {
     >(new GetPostsQuery(query, user?.userId));
   }
 
-  @Post()
-  @UseGuards(BasicAuthGuard)
-  async createPost(@Body() dto: CreatePostForBlogDto): Promise<PostsViewDto> {
-    const postId: string = await this.commandBus.execute<
-      CreatePostCommand,
-      string
-    >(new CreatePostCommand(dto));
-    return await this.queryBus.execute<GetPostByIdOrFailQuery, PostsViewDto>(
-      new GetPostByIdOrFailQuery(postId),
-    );
-  }
+  // @Post()
+  // @UseGuards(BasicAuthGuard)
+  // async createPost(@Body() dto: CreatePostForBlogDto): Promise<PostsViewDto> {
+  //   const postId: string = await this.commandBus.execute<
+  //     CreatePostCommand,
+  //     string
+  //   >(new CreatePostCommand(dto));
+  //   return await this.queryBus.execute<GetPostByIdOrFailQuery, PostsViewDto>(
+  //     new GetPostByIdOrFailQuery(postId),
+  //   );
+  // }
 
   @Post(':postId/comments')
   @UseGuards(JwtAccessTokenAuthGuard)
   @HttpCode(201)
   async createCommentForPost(
     @Body() dto: CreateCommentInputDto,
-    @Param('postId', ObjectIdValidationPipe) postId: string,
+    @Param('postId', CustomParseIntPipe) postId: number,
     @CurrentUser() user: UserContextDto,
   ): Promise<CommentsViewDto> {
     const commandDto = CreateCommentCommandDto.createDto(
@@ -98,7 +91,7 @@ export class PostsController {
     );
     const commentId = await this.commandBus.execute<
       CreateCommentCommand,
-      string
+      number
     >(new CreateCommentCommand(commandDto));
     return await this.queryBus.execute<
       GetCommentByIdOrFailQuery,
@@ -109,7 +102,7 @@ export class PostsController {
   @Get(':postId')
   @UseGuards(JwtOptionalAuthGuard)
   async getPost(
-    @Param('postId', ObjectIdValidationPipe) postId: string,
+    @Param('postId', CustomParseIntPipe) postId: number,
     @OptionalCurrentUser() user: UserContextDto,
   ): Promise<PostsViewDto> {
     return await this.queryBus.execute<GetPostByIdOrFailQuery, PostsViewDto>(
@@ -117,24 +110,24 @@ export class PostsController {
     );
   }
 
-  @HttpCode(204)
-  @Put(':postId')
-  @UseGuards(BasicAuthGuard)
-  async putPost(
-    @Param('postId', ObjectIdValidationPipe) postId: string,
-    @Body() dto: UpdatePostDto,
-  ): Promise<void> {
-    return await this.commandBus.execute<UpdatePostCommand, void>(
-      new UpdatePostCommand(postId, dto),
-    );
-  }
+  // @HttpCode(204)
+  // @Put(':postId')
+  // @UseGuards(BasicAuthGuard)
+  // async putPost(
+  //   @Param('postId', ObjectIdValidationPipe) postId: string,
+  //   @Body() dto: UpdatePostDto,
+  // ): Promise<void> {
+  //   return await this.commandBus.execute<UpdatePostCommand, void>(
+  //     new UpdatePostCommand(postId, dto),
+  //   );
+  // }
 
   @Put(':postId/like-status')
   @UseGuards(JwtAccessTokenAuthGuard)
   @HttpCode(204)
   async likePost(
     @CurrentUser() user: UserContextDto,
-    @Param('postId', ObjectIdValidationPipe) postId: string,
+    @Param('postId', CustomParseIntPipe) postId: number,
     @Body() dto: LikeStatusDto,
   ): Promise<void> {
     const commandDto = CreatePostLikeCommandDto.createDto(
@@ -147,14 +140,14 @@ export class PostsController {
     );
   }
 
-  @HttpCode(204)
-  @UseGuards(BasicAuthGuard)
-  @Delete(':postId')
-  async deletePost(
-    @Param('postId', ObjectIdValidationPipe) postId: string,
-  ): Promise<void> {
-    return await this.commandBus.execute<DeletePostCommand, void>(
-      new DeletePostCommand(postId),
-    );
-  }
+  // @HttpCode(204)
+  // @UseGuards(BasicAuthGuard)
+  // @Delete(':postId')
+  // async deletePost(
+  //   @Param('postId', ObjectIdValidationPipe) postId: string,
+  // ): Promise<void> {
+  //   return await this.commandBus.execute<DeletePostCommand, void>(
+  //     new DeletePostCommand(postId),
+  //   );
+  // }
 }

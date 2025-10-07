@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsEnum, IsNumber } from 'class-validator';
+import { IsNumber } from 'class-validator';
 
 export enum SortDirection {
   Asc = 'asc',
@@ -14,9 +14,6 @@ export class BaseQueryPagination {
   @Type(() => Number)
   @IsNumber()
   pageSize: number = 10;
-
-  @IsEnum(SortDirection)
-  sortDirection: SortDirection = SortDirection.Desc;
 
   calculateSkip() {
     return (this.pageNumber - 1) * this.pageSize;

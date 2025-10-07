@@ -1,4 +1,4 @@
-import { PostDocument } from '../../domain/post.entity';
+import { PostCompoundDbType } from '../../domain/post.entity';
 import { LikeStatus } from '../../../comments/domain/enums/like-status-enum';
 
 export class PostsViewDto {
@@ -11,9 +11,9 @@ export class PostsViewDto {
   createdAt: string;
   extendedLikesInfo: ExtendedLikesInfo;
 
-  static mapToView(post: PostDocument,dto:ExtendedLikesInfo): PostsViewDto {
+  static mapToView(post: PostCompoundDbType): PostsViewDto {
     const newDto = new PostsViewDto();
-    newDto.id = post._id.toString();
+    newDto.id = post.id.toString();
     newDto.title = post.title;
     newDto.shortDescription = post.shortDescription;
     newDto.content = post.content;
@@ -22,10 +22,16 @@ export class PostsViewDto {
     newDto.createdAt = post.createdAt.toISOString();
 
     newDto.extendedLikesInfo = {
-      likesCount: dto.likesCount,
-      dislikesCount: dto.dislikesCount,
-      myStatus: dto.myStatus,
-      newestLikes: dto.newestLikes,
+      likesCount: +post.likesCount,
+      dislikesCount: +post.dislikesCount,
+      myStatus: post.myStatus,
+      newestLikes: post.newestLikes.map((l) => {
+        return {
+          userId: l.userId.toString(),
+          addedAt: l.addedAt,
+          login: l.login,
+        };
+      }),
     };
     return newDto;
   }

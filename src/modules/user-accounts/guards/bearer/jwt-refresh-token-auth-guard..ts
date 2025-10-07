@@ -10,16 +10,15 @@ import { UserContextDto } from '../dto/user-context.dto';
 import { DomainException } from '../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../core/exceptions/domain-exception-codes';
 import {
-  ACCESS_TOKEN_INJECT_TOKEN,
   REFRESH_TOKEN_INJECT_TOKEN,
 } from '../../constants/jwt-tokens-inject-constants';
-import { SessionsRepository } from '../../infrastructure/sessions-repository';
+import { SessionsSqlRepository } from '../../infrastructure/sessions/sessions-sql-repository';
 
 @Injectable()
 export class JwtRefreshTokenAuthGuard implements CanActivate {
   constructor(
     @Inject(REFRESH_TOKEN_INJECT_TOKEN) private jwtService: JwtService,
-    private sessionsRepository: SessionsRepository,
+    private sessionsRepository: SessionsSqlRepository,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -28,7 +27,7 @@ export class JwtRefreshTokenAuthGuard implements CanActivate {
       throw new DomainException({
         code: DomainExceptionCode.Unauthorized,
         message: "unauthorized",
-        field: "None"
+        field: "no cookies"
       });
     }
     const refreshToken = request.cookies.refreshToken;
@@ -40,7 +39,7 @@ export class JwtRefreshTokenAuthGuard implements CanActivate {
       throw new DomainException({
         code: DomainExceptionCode.Unauthorized,
         message: "unauthorized",
-        field: "None"
+        field: "failed verify"
       });
     }
     const dataFromJWT = this.jwtService.decode(refreshToken);
@@ -52,8 +51,8 @@ export class JwtRefreshTokenAuthGuard implements CanActivate {
     request.user = {
       userId: dataFromJWT.userId,
       deviceId: dataFromJWT.deviceId,
-      iat: new Date(+dataFromJWT.iat * 1000).toISOString(),
-      exp: new Date(+dataFromJWT.exp * 1000).toISOString(),
+      iat: new Date(+dataFromJWT.iat * 1000),
+      exp: new Date(+dataFromJWT.exp * 1000),
     } as UserContextDto;
     return true;
   }

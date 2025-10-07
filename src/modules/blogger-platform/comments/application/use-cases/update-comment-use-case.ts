@@ -1,8 +1,8 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { CommentsRepository } from '../../infrastructure/comments.repository';
 import { UpdateCommentCommandDto } from '../dto/update-comment-command-dto';
 import { DomainException } from '../../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
+import { CommentsSqlRepository } from '../../infrastructure/comments.sql.repository';
 
 export class UpdateCommentCommand {
   constructor(public dto: UpdateCommentCommandDto) {}
@@ -12,14 +12,14 @@ export class UpdateCommentUseCase
   implements ICommandHandler<UpdateCommentCommand, void>
 {
   constructor(
-    private commentsRepository: CommentsRepository,
+    private commentsRepository: CommentsSqlRepository,
   ) {}
   async execute(command: UpdateCommentCommand) {
     const foundComment = await this.commentsRepository.findByIdOrFail(
       command.dto.commentId,
     );
 
-    if (foundComment.commentatorInfo.userId.toString() !== command.dto.userId) {
+    if (foundComment.userId!== command.dto.userId) {
       throw new DomainException({
         code: DomainExceptionCode.Forbidden,
         message: 'This user has no rights to change another user`s comment',
@@ -31,6 +31,6 @@ export class UpdateCommentUseCase
       content: command.dto.content,
     })
 
-    await this.commentsRepository.save(foundComment);
+    await this.commentsRepository.updateComment(foundComment);
   }
 }

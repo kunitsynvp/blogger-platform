@@ -1,8 +1,8 @@
 export class CreateSessionDomainDto {
   ip: string
   title: string
-  userId: string;
+  userId: number;
   deviceId: string;
-  iat: string;
-  exp: string;
+  iat: Date;
+  exp: Date;
 }

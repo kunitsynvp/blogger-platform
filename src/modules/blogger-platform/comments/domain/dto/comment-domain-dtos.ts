@@ -1,8 +1,7 @@
 export class CreateCommentDomainDto{
   content: string
-  userId: string
-  userLogin: string
-  postId: string
+  userId: number
+  postId: number
 }
 export class UpdateCommentDomainDto{
   content: string

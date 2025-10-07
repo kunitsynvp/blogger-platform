@@ -1,10 +1,6 @@
 import { Module } from '@nestjs/common';
 import { UsersController } from './api/users.controller';
 import { UsersService } from './application/users.service';
-import { MongooseModule } from '@nestjs/mongoose';
-import { User, UserSchema } from './domain/user/user.entity';
-import { UsersQueryRepository } from './infrastructure/users.query.repository';
-import { UsersRepository } from './infrastructure/users.repository';
 import { RandomService } from './application/random.service';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { CryptoService } from './application/crypto.service';
@@ -26,23 +22,19 @@ import {
   ACCESS_TOKEN_INJECT_TOKEN,
   REFRESH_TOKEN_INJECT_TOKEN,
 } from './constants/jwt-tokens-inject-constants';
-import { UsersExternalRepository } from './infrastructure/external/users.external.repository';
-import { UsersExternalQueryRepository } from './infrastructure/external/users.external.query.repository';
 import { UserAccountsConfig } from './config/users-accounts-config';
-import {
-  TerminateSpecifiedSessionUseCase
-} from './application/use-cases/session/terminate-specified-sessions-use-case';
+import { TerminateSpecifiedSessionUseCase } from './application/use-cases/session/terminate-specified-sessions-use-case';
 import { TerminateAllSessionsUseCase } from './application/use-cases/session/terminate-all-sessions-use-case';
 import { GetSessionsQueryHandler } from './application/queries/sessions/get-sessions-query';
-import { SessionsRepository } from './infrastructure/sessions-repository';
-import { SessionsQueryRepository } from './infrastructure/sessions-query-repository';
-import { Session } from 'node:inspector';
-import { SessionSchema } from './domain/sessions/session.entity';
 import { SessionsController } from './api/sessions.controller';
 import { UpdateTokensPairUseCase } from './application/use-cases/auth/update-tokens-pair-use-case';
 import { LogoutUseCase } from './application/use-cases/auth/logout-use-case';
 import { SessionsService } from './application/sessions.service';
 import { UsersSqlRepository } from './infrastructure/users.sql.repository';
+import { UsersSqlQueryRepository } from './infrastructure/users.sql.query.repository';
+import { SessionsSqlQueryRepository } from './infrastructure/sessions/sessions-sql-query-repository';
+import { SessionsSqlRepository } from './infrastructure/sessions/sessions-sql-repository';
+import { UsersExternalSqlRepository } from './infrastructure/external/users.external.sql.repository';
 
 const useCases = [
   //auth
@@ -69,12 +61,11 @@ const queryHandlers = [
 ];
 @Module({
   imports: [
-    MongooseModule.forFeature([
-      { name: User.name, schema: UserSchema },
-      { name: Session.name, schema: SessionSchema },
-    ]),
+    // MongooseModule.forFeature([
+    //   { name: UserMongoose.name, schema: UserSchema },
+    // ]),
     NotificationsModule,
-    JwtModule
+    JwtModule,
   ],
   controllers: [UsersController, AuthController, SessionsController],
   providers: [
@@ -102,24 +93,21 @@ const queryHandlers = [
       inject: [UserAccountsConfig],
     },
     UsersService,
-    UsersQueryRepository,
-    UsersRepository,
+    UsersSqlQueryRepository,
     AuthQueryRepository,
     CryptoService,
     RandomService,
-    UsersExternalRepository,
-    UsersExternalQueryRepository,
-    SessionsRepository,
-    SessionsQueryRepository,
+    UsersExternalSqlRepository,
+    //UsersExternalQueryRepository,//TODO DO SQL LOGIC FOR THIS QUERY REPO IF NEEDED
     SessionsService,
-
-    //testing
-    UsersSqlRepository
+    UsersSqlRepository,
+    SessionsSqlQueryRepository,
+    SessionsSqlRepository,
   ],
   exports: [
-    UsersExternalRepository,
-    UsersExternalQueryRepository,
-    UserAccountsConfig
-  ]
+    UsersExternalSqlRepository,
+    //UsersExternalQueryRepository,
+    UserAccountsConfig,
+  ],
 })
 export class UserAccountsModule {}

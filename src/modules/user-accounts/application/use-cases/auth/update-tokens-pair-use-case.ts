@@ -1,5 +1,4 @@
 import { JwtService } from '@nestjs/jwt';
-import { UsersRepository } from '../../../infrastructure/users.repository';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { DomainException } from '../../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
@@ -11,10 +10,11 @@ import {
 import { Inject } from '@nestjs/common';
 import { UpdateActiveSessionDomainDto } from '../../../domain/sessions/dto/update-active-session-domain-dto';
 import { SessionsService } from '../../sessions.service';
+import { UsersSqlRepository } from '../../../infrastructure/users.sql.repository';
 
 export class UpdateTokensPairCommand {
   constructor(
-    public userId: string,
+    public userId: number,
     public deviceId: string,
   ) {}
 }
@@ -23,7 +23,7 @@ export class UpdateTokensPairUseCase
   implements ICommandHandler<UpdateTokensPairCommand, AccessAndRefreshToken>
 {
   constructor(
-    private usersRepository: UsersRepository,
+    private usersRepository: UsersSqlRepository,
     @Inject(ACCESS_TOKEN_INJECT_TOKEN)
     private jwtAccessTokenService: JwtService,
     @Inject(REFRESH_TOKEN_INJECT_TOKEN)
@@ -54,11 +54,9 @@ export class UpdateTokensPairUseCase
 
     const decodedRefreshToken =
       this.jwtRefreshTokenService.decode(newRefreshToken);
-    const iat = new Date(+decodedRefreshToken.iat * 1000).toISOString();
-    const exp = new Date(+decodedRefreshToken.exp * 1000).toISOString();
+    const iat = new Date(+decodedRefreshToken.iat * 1000);
+    const exp = new Date(+decodedRefreshToken.exp * 1000);
 
-    console.log("iat date in update token pair use case: ",iat);
-    console.log("expiration date in update token pair use case: ",exp);
 
     const updateSessionDto = UpdateActiveSessionDomainDto.createDto(
       decodedRefreshToken.deviceId,

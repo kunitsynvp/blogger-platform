@@ -6,8 +6,6 @@ export const GetIpAndDeviceName = createParamDecorator(
     const request = ctx.switchToHttp().getRequest();
     const userIp =
       (request.headers['x-forwarded-for'] as string) || '192.168.0.1';
-    console.log(userIp);
-    console.log(request.headers['user-agent']);
 
     const deviceName = (request.headers['user-agent'] ||
       'Other device') as string;

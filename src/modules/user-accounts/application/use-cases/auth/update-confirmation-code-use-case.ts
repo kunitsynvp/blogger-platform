@@ -1,6 +1,3 @@
-import { UsersRepository } from '../../../infrastructure/users.repository';
-import { UserDocument } from '../../../domain/user/user.entity';
-import { UsersFields } from '../../../domain/user/enums/users-fields';
 import { DomainException } from '../../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
 import { EmailDto } from '../../../api/input-dto/email-dto';
@@ -9,6 +6,8 @@ import { RandomService } from '../../random.service';
 import { add } from 'date-fns';
 import { EmailService } from '../../../../notifications/application/email.service';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { UsersSqlRepository } from '../../../infrastructure/users.sql.repository';
+import { User } from '../../../domain/user/user.entity';
 
 export class UpdateConfirmationCodeCommand {
   constructor(public dto: EmailDto) {}
@@ -18,15 +17,12 @@ export class UpdateConfirmationCodeUseCase
   implements ICommandHandler<UpdateConfirmationCodeCommand>
 {
   constructor(
-    private usersRepository: UsersRepository,
+    private usersRepository: UsersSqlRepository,
     private emailService: EmailService,
   ) {}
 
   async execute(command: UpdateConfirmationCodeCommand): Promise<void> {
-    const foundUser = await this.usersRepository.findByField(
-      UsersFields.Email,
-      command.dto.email,
-    );
+    const foundUser = await this.usersRepository.findByEmail(command.dto.email);
     this.checkExceptions(foundUser!);
 
     const emailConfirmationDto: EmailConfirmationUserDomainDto = {
@@ -36,10 +32,10 @@ export class UpdateConfirmationCodeUseCase
 
     foundUser!.updateConfirmation(emailConfirmationDto);
 
-    const updatedUser = await this.usersRepository.save(foundUser!);
-    this.emailService.sendConfirmationCode(updatedUser);
+    await this.usersRepository.updateConfirmationCode(foundUser!);
+    this.emailService.sendConfirmationCode(foundUser!);
   }
-  private checkExceptions(user: UserDocument) {
+  private checkExceptions(user: User) {
     if (!user) {
       throw new DomainException({
         code: DomainExceptionCode.BadRequest,
@@ -47,7 +43,7 @@ export class UpdateConfirmationCodeUseCase
         field: 'email',
       });
     }
-    if (user.emailConfirmation.isConfirmed) {
+    if (user.isConfirmed) {
       throw new DomainException({
         code: DomainExceptionCode.EmailAlreadyConfirmed,
         message: 'email already confirmed',

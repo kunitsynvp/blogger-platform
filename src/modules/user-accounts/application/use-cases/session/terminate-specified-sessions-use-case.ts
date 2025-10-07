@@ -1,12 +1,12 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { SessionsRepository } from '../../../infrastructure/sessions-repository';
-import { UsersExternalRepository } from '../../../infrastructure/external/users.external.repository';
 import { DomainException } from '../../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
+import { SessionsSqlRepository } from '../../../infrastructure/sessions/sessions-sql-repository';
+import { UsersSqlRepository } from '../../../infrastructure/users.sql.repository';
 
 export class TerminateSpecifiedSessionCommand {
   constructor(
-    public userId: string,
+    public userId: number,
     public deviceIdURI: string,
   ) {}
 }
@@ -15,8 +15,8 @@ export class TerminateSpecifiedSessionUseCase
   implements ICommandHandler<TerminateSpecifiedSessionCommand, void>
 {
   constructor(
-    private sessionsRepository: SessionsRepository,
-    private usersRepository: UsersExternalRepository,
+    private sessionsRepository: SessionsSqlRepository,
+    private usersRepository: UsersSqlRepository,
   ) {}
 
   async execute(command: TerminateSpecifiedSessionCommand): Promise<void> {
@@ -27,7 +27,7 @@ export class TerminateSpecifiedSessionUseCase
         command.deviceIdURI,
       );
 
-    if (foundSession.userId.toString() !== command.userId) {
+    if (foundSession.userId !== command.userId) {
       throw new DomainException({
         code: DomainExceptionCode.Forbidden,
         message: 'This user doesn`t own this deviceId',

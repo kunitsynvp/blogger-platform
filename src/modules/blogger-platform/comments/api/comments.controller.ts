@@ -1,4 +1,13 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Put, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
 import { CommentsViewDto } from './view-dto/comments-view-dto';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { GetCommentByIdOrFailQuery } from '../application/queries/get-comment-by-id-query';
@@ -10,11 +19,11 @@ import { JwtAccessTokenAuthGuard } from '../../../user-accounts/guards/bearer/jw
 import { CommentLikeStatusCommand } from '../../comments-likes/application/use-cases/comment-like-status-use-case';
 import { JwtOptionalAuthGuard } from '../../../user-accounts/guards/bearer/jwt-optional-auth-guard';
 import { OptionalCurrentUser } from '../../../user-accounts/guards/decorators/optional-current-user-param-decorator';
-import { ObjectIdValidationPipe } from '../../../../core/pipes/object-id-validation-pipe';
 import { UpdateCommentInputDto } from './input-dto/update-comment-input-dto';
 import { UpdateCommentCommand } from '../application/use-cases/update-comment-use-case';
 import { UpdateCommentCommandDto } from '../application/dto/update-comment-command-dto';
 import { DeleteCommentCommand } from '../application/use-cases/delete-comment-use-case';
+import { CustomParseIntPipe } from '../../../../core/pipes/int-transformation-pipe';
 
 @Controller('comments')
 export class CommentsController {
@@ -25,20 +34,20 @@ export class CommentsController {
   @Get(':commentId')
   @UseGuards(JwtOptionalAuthGuard)
   async getCommentById(
-    @OptionalCurrentUser() user: UserContextDto | undefined,
-    @Param('commentId', ObjectIdValidationPipe) commentId: string,
+    @OptionalCurrentUser() user: UserContextDto,
+    @Param('commentId', CustomParseIntPipe) commentId: number,
   ): Promise<CommentsViewDto> {
     return await this.queryBus.execute<
       GetCommentByIdOrFailQuery,
       CommentsViewDto
-    >(new GetCommentByIdOrFailQuery(commentId,user));
+    >(new GetCommentByIdOrFailQuery(commentId, user));
   }
   @UseGuards(JwtAccessTokenAuthGuard)
   @HttpCode(204)
   @Put(':commentId/like-status')
   async likeStatus(
     @CurrentUser() user: UserContextDto,
-    @Param('commentId', ObjectIdValidationPipe) commentId: string,
+    @Param('commentId', CustomParseIntPipe) commentId: number,
     @Body() dto: LikeStatusDto,
   ): Promise<void> {
     const createLikeStatusDto: CreateCommentLikeStatusDto = {
@@ -53,20 +62,29 @@ export class CommentsController {
   @HttpCode(204)
   @UseGuards(JwtAccessTokenAuthGuard)
   @Put(':commentId')
-  async putComment(@CurrentUser() user: UserContextDto,
-                   @Param('commentId', ObjectIdValidationPipe) commentId: string,
-                   @Body() dto: UpdateCommentInputDto):Promise<void> {
-    const updateDto = UpdateCommentCommandDto.createDto(commentId, user.userId,dto.content)
-    return await this.commandBus.execute<UpdateCommentCommand,void>(new UpdateCommentCommand(updateDto))
+  async putComment(
+    @CurrentUser() user: UserContextDto,
+    @Param('commentId', CustomParseIntPipe) commentId: number,
+    @Body() dto: UpdateCommentInputDto,
+  ): Promise<void> {
+    const updateDto = UpdateCommentCommandDto.createDto(
+      commentId,
+      user.userId,
+      dto.content,
+    );
+    return await this.commandBus.execute<UpdateCommentCommand, void>(
+      new UpdateCommentCommand(updateDto),
+    );
   }
   @HttpCode(204)
   @UseGuards(JwtAccessTokenAuthGuard)
   @Delete(':commentId')
-  async deleteComment(@CurrentUser() user: UserContextDto,
-                      @Param('commentId', ObjectIdValidationPipe) commentId: string,)
-    :Promise<void>{
-    return await this.commandBus.execute<
-      DeleteCommentCommand,
-      void>(new DeleteCommentCommand(commentId, user.userId))
+  async deleteComment(
+    @CurrentUser() user: UserContextDto,
+    @Param('commentId', CustomParseIntPipe) commentId: number,
+  ): Promise<void> {
+    return await this.commandBus.execute<DeleteCommentCommand, void>(
+      new DeleteCommentCommand(commentId, user.userId),
+    );
   }
 }

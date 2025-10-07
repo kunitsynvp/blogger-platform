@@ -1,6 +1,5 @@
-import { IsNotEmpty, IsString, Matches } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, Matches } from 'class-validator';
 import { IsStringWithTrim } from '../../../../core/decorators/validation/is-string-with-trim-validation-decorator';
-import { Trim } from '../../../../core/decorators/transformation/trim-decorator';
 import {
   emailConstraints,
   loginConstraints,
@@ -13,8 +12,7 @@ export class CreateUserInputDto {
   login: string;
 
   @IsString()
-  @Trim()
-  @IsNotEmpty()
+  @IsEmail()
   @Matches(emailConstraints.match)
   email: string;
 

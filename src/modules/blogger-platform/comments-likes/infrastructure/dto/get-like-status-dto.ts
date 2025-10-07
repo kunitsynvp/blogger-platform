@@ -1,4 +1,4 @@
 export class GetCommentLikesInfoDto {
-  commentId: string;
-  userId?: string
+  commentId: number;
+  userId?: number
 }

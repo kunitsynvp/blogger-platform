@@ -1,10 +1,10 @@
-import { UsersRepository } from '../../../infrastructure/users.repository';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { SessionsRepository } from '../../../infrastructure/sessions-repository';
+import { SessionsSqlRepository } from '../../../infrastructure/sessions/sessions-sql-repository';
+import { UsersSqlRepository } from '../../../infrastructure/users.sql.repository';
 
 export class TerminateAllSessionsCommand {
   constructor(
-    public userId: string,
+    public userId: number,
     public deviceId: string,
   ) {}
 }
@@ -13,8 +13,8 @@ export class TerminateAllSessionsUseCase
   implements ICommandHandler<TerminateAllSessionsCommand, void>
 {
   constructor(
-    private sessionsRepository: SessionsRepository,
-    private usersRepository: UsersRepository,
+    private sessionsRepository: SessionsSqlRepository,
+    private usersRepository: UsersSqlRepository,
   ) {}
 
   async execute(command: TerminateAllSessionsCommand): Promise<void> {

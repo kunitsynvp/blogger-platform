@@ -1,11 +1,9 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { CommentLikeRepository } from '../../infrastructure/comment-like-repository';
+import { CommentLikeSqlRepository } from '../../infrastructure/comment-like-sql-repository';
 import { CreateCommentLikeStatusDto } from '../dto/create-comment-like-status-dto';
 import { CommentLike} from '../../domain/comments-like-entity';
-import type { CommentLikeModelType } from '../../domain/comments-like-entity';
-import { InjectModel } from '@nestjs/mongoose';
-import { CommentsRepository } from '../../../comments/infrastructure/comments.repository';
 import { GetCommentLikesInfoDto } from '../../infrastructure/dto/get-like-status-dto';
+import { CommentsSqlRepository } from '../../../comments/infrastructure/comments.sql.repository';
 
 export class CommentLikeStatusCommand {
   constructor(public dto: CreateCommentLikeStatusDto) {}
@@ -14,10 +12,8 @@ export class CommentLikeStatusCommand {
 export class CommentLikeStatusUseCase implements ICommandHandler<
   CommentLikeStatusCommand,
   void> {
-  constructor(@InjectModel(CommentLike.name)
-              private commentLikeModel: CommentLikeModelType,
-              private commentLikeRepository: CommentLikeRepository,
-              private commentsRepository: CommentsRepository,) {
+  constructor(private commentLikeRepository: CommentLikeSqlRepository,
+              private commentsRepository: CommentsSqlRepository,) {
   }
   async execute(command: CommentLikeStatusCommand): Promise<void> {
     const dto: GetCommentLikesInfoDto = {
@@ -35,12 +31,12 @@ export class CommentLikeStatusUseCase implements ICommandHandler<
       return
     } else {
       OldLikeStatus.updateLikeStatus(command.dto.likeStatus)
-      await this.commentLikeRepository.save(OldLikeStatus)
+      await this.commentLikeRepository.updateLikeStatus(OldLikeStatus)
     }
 
   }
   private async createLikeStatus(dto: CreateCommentLikeStatusDto ): Promise<void> {
-    const newLikeStatus = this.commentLikeModel.createLikeStatus(dto)
-    await this.commentLikeRepository.save(newLikeStatus)
+    const newLikeStatus = CommentLike.createLikeStatus(dto)
+    return await this.commentLikeRepository.createLikeStatus(newLikeStatus)
   }
 }

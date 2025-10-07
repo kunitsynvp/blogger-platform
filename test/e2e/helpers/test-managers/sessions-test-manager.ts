@@ -1,35 +1,22 @@
 import { type INestApplication } from '@nestjs/common';
-import { CommandBus } from '@nestjs/cqrs';
-import { SessionsRepository } from '../../../../src/modules/user-accounts/infrastructure/sessions-repository';
-import {
-  Session,
-  SessionModelType,
-} from '../../../../src/modules/user-accounts/domain/sessions/session.entity';
-import mongoose from 'mongoose';
-import { getModelToken } from '@nestjs/mongoose';
 import { UsersTestManager } from './users-test-manager';
+import { SessionsSqlRepository } from '../../../../src/modules/user-accounts/infrastructure/sessions/sessions-sql-repository';
+import { delay } from '../delay';
 
 export class SessionsTestManager {
   private readonly BasicAuthString: string = 'Basic YWRtaW46cXdlcnR5';
 
-  private sessionRepository: SessionsRepository;
-  private commandBus: CommandBus;
-  private sessionModel: SessionModelType;
+  private sessionRepository: SessionsSqlRepository;
   private usersTestManager: UsersTestManager;
 
   constructor(private app: INestApplication) {
-    this.sessionRepository =
-      this.app.get<SessionsRepository>(SessionsRepository);
-    this.commandBus = this.app.get<CommandBus>(CommandBus);
-    this.sessionModel = this.app.get<SessionModelType>(
-      getModelToken(Session.name),
+    this.sessionRepository = this.app.get<SessionsSqlRepository>(
+      SessionsSqlRepository,
     );
     this.usersTestManager = new UsersTestManager(app);
   }
-  async getSessionByUserId(userId: string) {
-    return this.sessionModel.find({
-      userId: new mongoose.Types.ObjectId(userId),
-    });
+  async getSessionByUserId(userId: number) {
+    return this.sessionRepository.findSessionByUserId(userId);
   }
   async deleteSpecifiedSession(deviceId: string) {
     return await this.sessionRepository.terminateSpecifiedSession(deviceId);
@@ -42,8 +29,10 @@ export class SessionsTestManager {
     const rTokenArray: Array<string> = [];
     const aTokenArray: Array<string> = [];
     for (let i = 0; i < count; i++) {
-      const { accessToken, refreshToken } =
-        await this.usersTestManager.loginUser(login, password);
+      await delay(1000)
+      console.log("date in method: ",new Date());
+
+      const { accessToken, refreshToken } = await this.usersTestManager.loginUser(login, password);
       aTokenArray.push(accessToken);
       rTokenArray.push(refreshToken);
     }

@@ -1,23 +1,26 @@
 import { Controller, Delete, HttpCode, HttpStatus } from '@nestjs/common';
-import { InjectConnection } from '@nestjs/mongoose';
-import { Connection } from 'mongoose';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 @Controller('testing')
 export class TestingController {
-  constructor(
-    @InjectConnection() private readonly databaseConnection: Connection,
-  ) {}
+  constructor(@InjectDataSource() private datasource: DataSource) {}
 
   @Delete('all-data')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteAll() {
-    const collections = await this.databaseConnection.listCollections();
-
-    const promises = collections.map((collection) =>
-      this.databaseConnection.collection(collection.name).deleteMany({}),
-    );
-    await Promise.all(promises);
-
+    const query = `
+        DELETE FROM "EmailConfirmation";
+        DELETE FROM "PasswordRecovery";
+        DELETE FROM "CommentLikes";
+        DELETE FROM "PostLikes";
+        DELETE FROM "Comments";
+        DELETE FROM "Sessions";
+        DELETE FROM "Posts";
+        DELETE FROM "Blogs";
+        DELETE FROM "Users";
+    `;
+    await this.datasource.query(query);
     return {
       status: 'succeeded',
     };

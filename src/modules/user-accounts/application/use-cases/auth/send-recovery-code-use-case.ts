@@ -1,11 +1,10 @@
-import { UsersRepository } from '../../../infrastructure/users.repository';
-import { UsersFields } from '../../../domain/user/enums/users-fields';
 import { EmailDto } from '../../../api/input-dto/email-dto';
 import { PasswordRecoveryUserDomainDto } from '../../../domain/user/dto/user-domain-dto';
 import { RandomService } from '../../random.service';
 import { add } from 'date-fns';
 import { EmailService } from '../../../../notifications/application/email.service';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { UsersSqlRepository } from '../../../infrastructure/users.sql.repository';
 
 export class SendRecoveryCodeCommand {
   constructor(public dto: EmailDto) {}
@@ -15,15 +14,12 @@ export class SendRecoveryCodeUseCase
   implements ICommandHandler<SendRecoveryCodeCommand>
 {
   constructor(
-    private usersRepository: UsersRepository,
+    private usersRepository: UsersSqlRepository,
     private emailService: EmailService,
   ) {}
 
   async execute(command: SendRecoveryCodeCommand): Promise<void> {
-    const foundUser = await this.usersRepository.findByField(
-      UsersFields.Email,
-      command.dto.email,
-    );
+    const foundUser = await this.usersRepository.findByEmail(command.dto.email);
     if (!foundUser) {
       return;
     }
@@ -34,10 +30,10 @@ export class SendRecoveryCodeUseCase
 
     foundUser.setPasswordRecovery(passwordRecoveryDto);
 
-    const updatedUser = await this.usersRepository.save(foundUser);
-
+    const updatedUser =
+      await this.usersRepository.setPasswordRecovery(foundUser);
     try {
-      this.emailService.sendRecoveryCode(updatedUser);
+      this.emailService.sendRecoveryCode(foundUser);
     } catch (e) {
       console.error(e);
     }

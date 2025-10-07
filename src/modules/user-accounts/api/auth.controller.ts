@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Query,
   Res,
   UseGuards,
 } from '@nestjs/common';
@@ -35,17 +36,18 @@ import { AccessAndRefreshToken } from '../application/dto/access-and-refresh-tok
 import { GetUserInfo } from '../../../core/decorators/user-info-decorator';
 import { UserInfoDto } from '../guards/dto/user-info-dto';
 import { LogoutCommand } from '../application/use-cases/auth/logout-use-case';
-import { SkipThrottle } from '@nestjs/throttler';
-import { CustomThrottlerGuard } from '../../../core/throttler/throttler';
 import { UsersSqlRepository } from '../infrastructure/users.sql.repository';
+import { UsersSqlQueryRepository } from '../infrastructure/users.sql.query.repository';
+import { UsersQueryDto } from './input-dto/users-query-dto';
 
-@UseGuards(CustomThrottlerGuard)
+//@UseGuards(CustomThrottlerGuard)
 @Controller('auth')
 export class AuthController {
   constructor(
     private commandBus: CommandBus,
     private queryBus: QueryBus,
     private usersSqlRepository: UsersSqlRepository,
+    private usersSqlQueryRepository: UsersSqlQueryRepository,
   ) {}
   @Post('login')
   @HttpCode(HttpStatus.OK)
@@ -100,7 +102,7 @@ export class AuthController {
   @Post('refresh-token')
   @UseGuards(JwtRefreshTokenAuthGuard)
   @HttpCode(200)
-  @SkipThrottle()
+  // @SkipThrottle()
   async generateNewTokensPair(
     @CurrentUser() dto: UserContextDto,
     @Res({ passthrough: true }) res: Response,
@@ -118,7 +120,7 @@ export class AuthController {
   }
   @Get('me')
   @UseGuards(JwtAccessTokenAuthGuard)
-  @SkipThrottle()
+  //@SkipThrottle()
   async authMeHandler(@CurrentUser() user: UserContextDto): Promise<MeViewDto> {
     return await this.queryBus.execute<GetMeQuery, MeViewDto>(
       new GetMeQuery(user.userId),
@@ -127,7 +129,7 @@ export class AuthController {
   @Post('logout')
   @HttpCode(204)
   @UseGuards(JwtRefreshTokenAuthGuard)
-  @SkipThrottle()
+  //@SkipThrottle()
   async logout(@GetUserInfo() dto: UserInfoDto) {
     return await this.commandBus.execute<LogoutCommand, void>(
       new LogoutCommand(dto.userId, dto.deviceId),
@@ -150,12 +152,12 @@ export class AuthController {
 
   @Get('get-users')
   @HttpCode(200)
-  async getUsers() {
-    return await this.usersSqlRepository.findUsers();
+  async getUsers(@Query() query: UsersQueryDto) {
+    return await this.usersSqlQueryRepository.findAllUsers(query);
   }
   @Get('get-user-by-id')
   @HttpCode(200)
   async getUsersById(@Body() dto: { id: string }) {
-    return await this.usersSqlRepository.findById(dto.id);
+    return await this.usersSqlRepository.findById(+dto.id);
   }
 }

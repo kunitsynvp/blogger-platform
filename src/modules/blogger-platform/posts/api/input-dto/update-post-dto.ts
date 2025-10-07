@@ -1,6 +1,6 @@
 import { IsStringWithTrim } from '../../../../../core/decorators/validation/is-string-with-trim-validation-decorator';
 import { postConstraints } from '../../domain/constraints/post-constraints';
-import { IsMongoId, IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, IsNumber } from 'class-validator';
 
 export class UpdatePostDto {
   @IsStringWithTrim(
@@ -24,6 +24,6 @@ export class UpdatePostDto {
   @IsNotEmpty()
   content: string;
 
-  @IsMongoId()
-  blogId: string;
+  @IsNumber()
+  blogId: number;
 }

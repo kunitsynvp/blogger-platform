@@ -51,8 +51,8 @@ export class JwtAccessTokenAuthGuard implements CanActivate {
     request.user = {
       userId: dataFromJWT.userId,
       deviceId: dataFromJWT.deviceId,
-      iat: new Date(+dataFromJWT.iat * 1000).toISOString(),
-      exp: new Date(+dataFromJWT.exp * 1000).toISOString(),
+      iat: new Date(+dataFromJWT.iat * 1000),
+      exp: new Date(+dataFromJWT.exp * 1000),
     } as UserContextDto;
     return true;
   }
