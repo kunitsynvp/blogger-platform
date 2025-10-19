@@ -9,12 +9,13 @@ import {
 } from '../../../constants/jwt-tokens-inject-constants';
 import { Inject } from '@nestjs/common';
 import { RandomService } from '../../random.service';
-import { SessionsService } from '../../sessions.service';
 import { CreateSessionDto } from '../../dto/create-session-dto';
 import { LoginUserCommandDto } from '../../dto/login-user-command-dto';
 import { LoginUserDto } from '../../../api/input-dto/login-user-dto';
 import { User } from '../../../domain/user/user.entity';
-import { UsersSqlRepository } from '../../../infrastructure/users.sql.repository';
+import { UsersRepository } from '../../../infrastructure/users-repository';
+import { SessionsRepository } from '../../../infrastructure/sessions/sessions-repository';
+import { Session } from '../../../domain/sessions/session.entity';
 
 export class LoginCommand {
   constructor(public dto: LoginUserCommandDto) {}
@@ -27,9 +28,9 @@ export class LoginUseCase implements ICommandHandler<LoginCommand> {
     @Inject(REFRESH_TOKEN_INJECT_TOKEN)
     private jwtRefreshTokenService: JwtService,
     private cryptoService: CryptoService,
-    private usersRepository: UsersSqlRepository,
+    private usersRepository: UsersRepository,
     private randomService: RandomService,
-    private sessionsService: SessionsService,
+    private sessionRepository: SessionsRepository,
   ) {}
 
   async execute(
@@ -57,7 +58,8 @@ export class LoginUseCase implements ICommandHandler<LoginCommand> {
       new Date(+decodedRefreshToken.iat * 1000),
       new Date(+decodedRefreshToken.exp * 1000),
     );
-    await this.sessionsService.createSession(sessionDto);
+    const createdSession = Session.createSession(sessionDto);
+    await this.sessionRepository.save(createdSession);
 
     return { accessToken: accessToken, refreshToken: refreshToken };
   }

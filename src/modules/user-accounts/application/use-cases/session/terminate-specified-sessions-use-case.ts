@@ -1,8 +1,8 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { DomainException } from '../../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
-import { SessionsSqlRepository } from '../../../infrastructure/sessions/sessions-sql-repository';
-import { UsersSqlRepository } from '../../../infrastructure/users.sql.repository';
+import { SessionsRepository } from '../../../infrastructure/sessions/sessions-repository';
+import { UsersRepository } from '../../../infrastructure/users-repository';
 
 export class TerminateSpecifiedSessionCommand {
   constructor(
@@ -15,8 +15,8 @@ export class TerminateSpecifiedSessionUseCase
   implements ICommandHandler<TerminateSpecifiedSessionCommand, void>
 {
   constructor(
-    private sessionsRepository: SessionsSqlRepository,
-    private usersRepository: UsersSqlRepository,
+    private sessionsRepository: SessionsRepository,
+    private usersRepository: UsersRepository,
   ) {}
 
   async execute(command: TerminateSpecifiedSessionCommand): Promise<void> {

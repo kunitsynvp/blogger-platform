@@ -12,13 +12,13 @@ import { DomainExceptionCode } from '../../../../core/exceptions/domain-exceptio
 import {
   REFRESH_TOKEN_INJECT_TOKEN,
 } from '../../constants/jwt-tokens-inject-constants';
-import { SessionsSqlRepository } from '../../infrastructure/sessions/sessions-sql-repository';
+import { SessionsRepository } from '../../infrastructure/sessions/sessions-repository';
 
 @Injectable()
 export class JwtRefreshTokenAuthGuard implements CanActivate {
   constructor(
     @Inject(REFRESH_TOKEN_INJECT_TOKEN) private jwtService: JwtService,
-    private sessionsRepository: SessionsSqlRepository,
+    private sessionsRepository: SessionsRepository,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {

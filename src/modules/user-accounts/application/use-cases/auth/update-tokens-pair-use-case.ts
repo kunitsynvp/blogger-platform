@@ -10,7 +10,7 @@ import {
 import { Inject } from '@nestjs/common';
 import { UpdateActiveSessionDomainDto } from '../../../domain/sessions/dto/update-active-session-domain-dto';
 import { SessionsService } from '../../sessions.service';
-import { UsersSqlRepository } from '../../../infrastructure/users.sql.repository';
+import { UsersRepository } from '../../../infrastructure/users-repository';
 
 export class UpdateTokensPairCommand {
   constructor(
@@ -23,7 +23,7 @@ export class UpdateTokensPairUseCase
   implements ICommandHandler<UpdateTokensPairCommand, AccessAndRefreshToken>
 {
   constructor(
-    private usersRepository: UsersSqlRepository,
+    private usersRepository: UsersRepository,
     @Inject(ACCESS_TOKEN_INJECT_TOKEN)
     private jwtAccessTokenService: JwtService,
     @Inject(REFRESH_TOKEN_INJECT_TOKEN)

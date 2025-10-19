@@ -5,7 +5,6 @@ import {
   HttpCode,
   HttpStatus,
   Post,
-  Query,
   Res,
   UseGuards,
 } from '@nestjs/common';
@@ -36,18 +35,14 @@ import { AccessAndRefreshToken } from '../application/dto/access-and-refresh-tok
 import { GetUserInfo } from '../../../core/decorators/user-info-decorator';
 import { UserInfoDto } from '../guards/dto/user-info-dto';
 import { LogoutCommand } from '../application/use-cases/auth/logout-use-case';
-import { UsersSqlRepository } from '../infrastructure/users.sql.repository';
-import { UsersSqlQueryRepository } from '../infrastructure/users.sql.query.repository';
-import { UsersQueryDto } from './input-dto/users-query-dto';
+import { CustomThrottlerGuard } from '../../../core/throttler/throttler';
 
-//@UseGuards(CustomThrottlerGuard)
+@UseGuards(CustomThrottlerGuard)
 @Controller('auth')
 export class AuthController {
   constructor(
     private commandBus: CommandBus,
     private queryBus: QueryBus,
-    private usersSqlRepository: UsersSqlRepository,
-    private usersSqlQueryRepository: UsersSqlQueryRepository,
   ) {}
   @Post('login')
   @HttpCode(HttpStatus.OK)
@@ -150,14 +145,14 @@ export class AuthController {
     );
   }
 
-  @Get('get-users')
-  @HttpCode(200)
-  async getUsers(@Query() query: UsersQueryDto) {
-    return await this.usersSqlQueryRepository.findAllUsers(query);
-  }
-  @Get('get-user-by-id')
-  @HttpCode(200)
-  async getUsersById(@Body() dto: { id: string }) {
-    return await this.usersSqlRepository.findById(+dto.id);
-  }
+  // @Get('get-users')
+  // @HttpCode(200)
+  // async getUsers(@Query() query: UsersQueryDto) {
+  //   return await this.usersSqlQueryRepository.findAllUsers(query);
+  // }
+  // @Get('get-user-by-id')
+  // @HttpCode(200)
+  // async getUsersById(@Body() dto: { id: string }) {
+  //   return await this.usersSqlRepository.findById(+dto.id);
+  // }
 }

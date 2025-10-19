@@ -1,26 +1,57 @@
-import {
-  CreateUserDomainDto,
-  EmailConfirmationUserDomainDto,
-  PasswordRecoveryUserDomainDto,
-} from './dto/user-domain-dto';
-import { RandomService } from '../../application/random.service';
+import { CreateUserDomainDto } from './dto/user-domain-dto';
 import {
   emailConstraints,
   loginConstraints,
 } from './constraints/user-constraints';
-import { add } from 'date-fns';
+import {
+  Column,
+  Entity,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { EmailConfirmation } from './email-confirmation.entity';
+import { Session } from '../sessions/session.entity';
+import { PasswordRecovery } from './password-recovery.entity';
 
+@Entity()
 export class User {
+  @PrimaryGeneratedColumn()
   id: number;
+
+  @Column({
+    type: 'character varying',
+    collation: 'C',
+    unique: true,
+    length: 50,
+  })
   login: string;
+
+  @Column({
+    type: 'character varying',
+    length: 200,
+  })
   passwordHash: string;
+
+  @Column({
+    type: 'character varying',
+    length: 150,
+    unique: true,
+    collation: 'C',
+  })
   email: string;
-  confirmationCode: string | null
-  confirmationExpDate: Date | null
-  isConfirmed: boolean;
-  recoveryCode: string | null
-  recoveryExpDate: Date | null
+
+  @Column({ type: 'timestamp without time zone' })
   createdAt: Date;
+
+  @OneToOne(() => EmailConfirmation, (ec) => ec.user)
+  emailConfirmation: EmailConfirmation;
+
+  @OneToOne(() => PasswordRecovery, (pc) => pc.user)
+  passwordRecovery: PasswordRecovery;
+
+  @OneToMany(() => Session, (s) => s.user)
+  sessions: Session[];
 
   static createUser(dto: CreateUserDomainDto): User {
     const user = new User();
@@ -29,62 +60,14 @@ export class User {
     user.login = dto.login;
     user.email = dto.email;
     user.passwordHash = dto.passwordHash;
-
-    user.confirmationCode = null;
-    user.confirmationExpDate = null;
-    user.isConfirmed = dto.isConfirmed;
-
-    if (!dto.isConfirmed) {
-      user.confirmationCode = RandomService.createUuid();
-      user.confirmationExpDate= add(new Date(), {
-        hours: dto.emailConfirmationExpireInHours,
-      });
-    }
-    user.recoveryCode = null;
-    user.recoveryExpDate = null;
     user.createdAt = new Date();
 
-    return user
-  }
-
-  confirmEmail() {
-    if (this.isConfirmed) {
-      throw new Error('This email has already confirmed');
-    }
-    if (!this.confirmationExpDate) {
-      throw new Error('This confirmation code is expired');
-    }
-    if (this.confirmationExpDate < new Date()) {
-      throw new Error('This confirmation code is expired');
-    }
-    this.isConfirmed = true;
+    return user;
   }
   updatePassword(newPasswordHash: string) {
-    if (!this.recoveryExpDate) {
-      throw new Error('This recoveryCode is expired');
-    }
-
-    if (this.recoveryExpDate < new Date()) {
-      throw new Error('This recoveryCode is expired');
-    }
-
     this.passwordHash = newPasswordHash;
   }
-  setPasswordRecovery(dto: PasswordRecoveryUserDomainDto) {
-    if (dto.expirationDate < new Date()) {
-      throw new Error('Invalid password recovery expiration date');
-    }
 
-    this.recoveryExpDate = dto.expirationDate;
-    this.recoveryCode = dto.recoveryCode;
-  }
-  updateConfirmation(dto: EmailConfirmationUserDomainDto) {
-    if (this.isConfirmed) {
-      throw new Error('This email has already confirmed');
-    }
-    this.confirmationCode = dto.confirmationCode;
-    this.confirmationExpDate = dto.expirationDate;
-  }
   checkUsersExceptions(dto: CreateUserDomainDto) {
     if (
       dto.login.length > loginConstraints.maxLength ||
@@ -98,6 +81,7 @@ export class User {
     }
   }
 }
+
 export type UserDbType = {
   id: number;
   login: string;
@@ -110,36 +94,10 @@ export type UserCompoundDbType = {
   login: string;
   passwordHash: string;
   email: string;
-  confirmationCode: string | null
-  confirmationExpDate: Date | null
+  confirmationCode: string | null;
+  confirmationExpDate: Date | null;
   isConfirmed: boolean;
-  recoveryCode: string | null
-  recoveryExpDate: Date | null
+  recoveryCode: string | null;
+  recoveryExpDate: Date | null;
   createdAt: Date;
 };
-export class EmailConfirmation  {
-  id: number;
-  expirationDate: Date | null;
-  confirmationCode: string | null;
-  isConfirmed: boolean;
-  userId: number;
-}
-export type EmailConfirmationDbType = {
-  id: number;
-  expirationDate: Date | null;
-  confirmationCode: string | null;
-  isConfirmed: boolean;
-  userId: number;
-}
-export class PasswordRecovery {
-  id: number;
-  recoveryCode: string | null;
-  expirationDate: Date | null;
-  userId: number;
-}
-export type PasswordRecoveryDbType = {
-  id: number;
-  recoveryCode: string | null;
-  expirationDate: Date | null;
-  userId: number;
-}

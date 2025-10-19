@@ -1,17 +1,17 @@
 import { type INestApplication } from '@nestjs/common';
 import { UsersTestManager } from './users-test-manager';
-import { SessionsSqlRepository } from '../../../../src/modules/user-accounts/infrastructure/sessions/sessions-sql-repository';
+import { SessionsRepository } from '../../../../src/modules/user-accounts/infrastructure/sessions/sessions-repository';
 import { delay } from '../delay';
 
 export class SessionsTestManager {
   private readonly BasicAuthString: string = 'Basic YWRtaW46cXdlcnR5';
 
-  private sessionRepository: SessionsSqlRepository;
+  private sessionRepository: SessionsRepository;
   private usersTestManager: UsersTestManager;
 
   constructor(private app: INestApplication) {
-    this.sessionRepository = this.app.get<SessionsSqlRepository>(
-      SessionsSqlRepository,
+    this.sessionRepository = this.app.get<SessionsRepository>(
+      SessionsRepository,
     );
     this.usersTestManager = new UsersTestManager(app);
   }

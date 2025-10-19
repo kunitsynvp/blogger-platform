@@ -2,7 +2,7 @@ import { UsersService } from '../../users.service';
 import { EmailService } from '../../../../notifications/application/email.service';
 import { CreateUserInputDto } from '../../../api/input-dto/create-user-dto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { UsersSqlRepository } from '../../../infrastructure/users.sql.repository';
+import { UsersRepository } from '../../../infrastructure/users-repository';
 import { User } from '../../../domain/user/user.entity';
 
 export class RegistrationCommand {
@@ -13,7 +13,7 @@ export class RegistrationUseCase
   implements ICommandHandler<RegistrationCommand>
 {
   constructor(
-    private usersRepository: UsersSqlRepository,
+    private usersRepository: UsersRepository,
     private emailService: EmailService,
     private usersService: UsersService,
   ) {}

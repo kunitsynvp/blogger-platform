@@ -6,7 +6,7 @@ export class CreateSessionDto extends UserInfoDto {
                       userId: number,
                       deviceId: string,
                       iat: Date,
-                      exp: Date) {
+                      exp: Date,) {
     super(ip,title,userId, deviceId, iat,exp);
   }
   static createDto(ip: string,

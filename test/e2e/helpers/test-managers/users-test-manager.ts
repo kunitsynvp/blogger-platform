@@ -9,20 +9,20 @@ import {
   ACCESS_TOKEN_INJECT_TOKEN,
   REFRESH_TOKEN_INJECT_TOKEN,
 } from '../../../../src/modules/user-accounts/constants/jwt-tokens-inject-constants';
-import { UsersSqlRepository } from '../../../../src/modules/user-accounts/infrastructure/users.sql.repository';
+import { UsersRepository } from '../../../../src/modules/user-accounts/infrastructure/users-repository';
 import { User } from '../../../../src/modules/user-accounts/domain/user/user.entity';
 
 
 export class UsersTestManager {
   private readonly BasicAuthString: string = 'Basic YWRtaW46cXdlcnR5';
 
-  private usersRepository: UsersSqlRepository;
+  private usersRepository: UsersRepository;
   private commandBus: CommandBus;
   private jwtAccessTokenService: JwtService
   private jwtRefreshTokenService: JwtService
 
   constructor(private app: INestApplication) {
-    this.usersRepository = this.app.get<UsersSqlRepository>(UsersSqlRepository);
+    this.usersRepository = this.app.get<UsersRepository>(UsersRepository);
     this.commandBus = this.app.get<CommandBus>(CommandBus);
     this.jwtAccessTokenService = this.app.get<JwtService>(ACCESS_TOKEN_INJECT_TOKEN)
     this.jwtRefreshTokenService = this.app.get<JwtService>(REFRESH_TOKEN_INJECT_TOKEN)

@@ -14,7 +14,8 @@ import { CoreModule } from './core/core.module';
 import { configModule } from './config-module';
 import { CoreConfig } from './core/config/core-config';
 import { ThrottlerModule } from '@nestjs/throttler';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmModule, TypeOrmModuleAsyncOptions } from '@nestjs/typeorm';
+import { typeORMNamingStrategy } from './core/config/camel-case-naming-strategy';
 
 @Module({
   imports: [
@@ -40,15 +41,26 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         inject:[CoreConfig]
       }
     ),
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'postgres',
-      password: '12345',
-      database: 'BloggerPlatform',
-      autoLoadEntities: true,
-      synchronize: true,
+    // TypeOrmModule.forRoot({
+    //   logging: true,
+    //   namingStrategy: typeORMNamingStrategy
+    // }),
+    TypeOrmModule.forRootAsync({
+      useFactory:(coreConfig: CoreConfig) => {
+        return {
+          type: coreConfig.dbType,
+          host: coreConfig.dbHost,
+          port: coreConfig.dbPort,
+          username: coreConfig.dbUserName,
+          password: coreConfig.dbUserPassword,
+          database: coreConfig.dbName,
+          autoLoadEntities: coreConfig.dbAutoLoadEntities,
+          synchronize: coreConfig.dbSynchronize,
+          logging: true,
+          namingStrategy: typeORMNamingStrategy
+        } as TypeOrmModuleAsyncOptions
+      },
+      inject: [CoreConfig]
     }),
     MailerModule.forRoot({
       transport: {
@@ -61,7 +73,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         },
         tls: {
           rejectUnauthorized: false,
-        }
+        },
       }
     }),
     UserAccountsModule,

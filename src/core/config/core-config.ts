@@ -43,6 +43,31 @@ export class CoreConfig {
   @IsNumber({}, {message: "Set env variable THROTTLER_LIMIT, example: 5"})
   throttlerLimit: number
 
+  @IsString({message: 'Set env variable DB_TYPE, example: postgres'})
+  dbType: string
+
+  @IsString({message: 'Set env variable DB_HOST, example: localhost'})
+  dbHost: string
+
+  @IsNumber({},{message: 'Set env variable DB_ORT, example: 5432'})
+  dbPort: number
+
+  @IsString({message: 'Set env variable DB_USERNAME, example: postgres'})
+  dbUserName: string
+
+  @IsString({message: 'Set env variable DB_USER_PASSWORD, example: 12345'})
+  dbUserPassword: string
+
+  @IsString({message: 'Set env variable DB_NAME, example: BloggerPlatform'})
+  dbName: string
+
+  @IsBoolean({message: 'Set env variable DB_IS_AUTO_LOAD_ENTITIES, example: true'})
+  dbAutoLoadEntities: boolean
+
+  @IsBoolean({message: 'Set env variable DB_IS_SYNCHRONIZE, example: true'})
+  dbSynchronize: boolean
+
+
   constructor(private configService: ConfigService<any, true>) {
     this.port = +this.configService.get('PORT');
     this.mongodb_URI = this.configService.get('MONGODB_URI');
@@ -55,6 +80,17 @@ export class CoreConfig {
     ) as boolean;
     this.throttlerTtlInMs = +this.configService.get('THROTTLER_TTL_IN_MS');
     this.throttlerLimit = +this.configService.get('THROTTLER_LIMIT');
+    this.dbType = this.configService.get('DB_TYPE');
+    this.dbHost = this.configService.get('DB_HOST');
+    this.dbPort = +this.configService.get('DB_PORT');
+    this.dbUserName = this.configService.get('DB_USERNAME');
+    this.dbUserPassword = this.configService.get('DB_USER_PASSWORD');
+    this.dbName = this.configService.get('DB_NAME');
+    this.dbAutoLoadEntities = configValidationUtility.convertToBoolean(
+      this.configService.get('DB_IS_AUTO_LOAD_ENTITIES')) as boolean
+    this.dbSynchronize = configValidationUtility.convertToBoolean(
+      this.configService.get('DB_IS_SYNCHRONIZE')) as boolean
+
     configValidationUtility.validateConfig(this);
   }
 }

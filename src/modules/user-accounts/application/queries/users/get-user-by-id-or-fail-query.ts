@@ -1,6 +1,6 @@
 import { UsersViewDto } from '../../../api/view-dto/users-view-dto';
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-import { UsersSqlQueryRepository } from '../../../infrastructure/users.sql.query.repository';
+import { UsersQueryRepository } from '../../../infrastructure/users.query.repository';
 
 export class GetUserByIdOrFailQuery {
   constructor(public id: number) {}
@@ -10,7 +10,7 @@ export class GetUserByIdAndFailQueryHandler implements IQueryHandler<
   GetUserByIdOrFailQuery,
   UsersViewDto>
 {
-  constructor(private usersQueryRepository: UsersSqlQueryRepository) {}
+  constructor(private usersQueryRepository: UsersQueryRepository) {}
 
   async execute(query: GetUserByIdOrFailQuery): Promise<UsersViewDto> {
     return await this.usersQueryRepository.findByIdOrFail(query.id);

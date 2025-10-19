@@ -2,9 +2,8 @@ export class CreateUserDomainDto {
   login: string;
   email: string;
   passwordHash: string;
-  isConfirmed: boolean
-  emailConfirmationExpireInHours: number
-
+  //isConfirmed: boolean
+  //emailConfirmationExpireInHours: number
 }
 export class PasswordRecoveryUserDomainDto {
   recoveryCode: string;
@@ -13,4 +12,9 @@ export class PasswordRecoveryUserDomainDto {
 export class EmailConfirmationUserDomainDto {
   confirmationCode: string;
   expirationDate: Date;
+}
+export class CreateEmailConfirmationDomainDto {
+  isConfirmed: boolean
+  emailConfirmationExpireInHours: number
+  userId: number;
 }

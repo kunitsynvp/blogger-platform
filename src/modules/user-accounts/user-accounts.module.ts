@@ -30,11 +30,18 @@ import { SessionsController } from './api/sessions.controller';
 import { UpdateTokensPairUseCase } from './application/use-cases/auth/update-tokens-pair-use-case';
 import { LogoutUseCase } from './application/use-cases/auth/logout-use-case';
 import { SessionsService } from './application/sessions.service';
-import { UsersSqlRepository } from './infrastructure/users.sql.repository';
-import { UsersSqlQueryRepository } from './infrastructure/users.sql.query.repository';
+import { UsersRepository } from './infrastructure/users-repository';
+import { UsersQueryRepository } from './infrastructure/users.query.repository';
 import { SessionsSqlQueryRepository } from './infrastructure/sessions/sessions-sql-query-repository';
-import { SessionsSqlRepository } from './infrastructure/sessions/sessions-sql-repository';
+import { SessionsRepository } from './infrastructure/sessions/sessions-repository';
 import { UsersExternalSqlRepository } from './infrastructure/external/users.external.sql.repository';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { EmailConfirmation } from './domain/user/email-confirmation.entity';
+import { Session } from './domain/sessions/session.entity';
+import { PasswordRecovery } from './domain/user/password-recovery.entity';
+import { User } from './domain/user/user.entity';
+import { PasswordRecoveryRepository } from './infrastructure/password-recovery-repository';
+import { EmailConfirmationRepository } from './infrastructure/email-confirmation-repository';
 
 const useCases = [
   //auth
@@ -64,6 +71,7 @@ const queryHandlers = [
     // MongooseModule.forFeature([
     //   { name: UserMongoose.name, schema: UserSchema },
     // ]),
+    TypeOrmModule.forFeature([User, EmailConfirmation, PasswordRecovery, Session]),
     NotificationsModule,
     JwtModule,
   ],
@@ -93,16 +101,18 @@ const queryHandlers = [
       inject: [UserAccountsConfig],
     },
     UsersService,
-    UsersSqlQueryRepository,
+    UsersQueryRepository,
     AuthQueryRepository,
     CryptoService,
     RandomService,
     UsersExternalSqlRepository,
     //UsersExternalQueryRepository,//TODO DO SQL LOGIC FOR THIS QUERY REPO IF NEEDED
     SessionsService,
-    UsersSqlRepository,
+    UsersRepository,
+    PasswordRecoveryRepository,
+    EmailConfirmationRepository,
     SessionsSqlQueryRepository,
-    SessionsSqlRepository,
+    SessionsRepository,
   ],
   exports: [
     UsersExternalSqlRepository,

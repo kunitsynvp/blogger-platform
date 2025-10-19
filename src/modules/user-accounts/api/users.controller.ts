@@ -28,15 +28,6 @@ export class UsersController {
     private queryBus: QueryBus,
   ) {}
 
-  // @Get(':id')
-  // async getById(
-  //   @Param('id', CustomParseIntPipe) id: number,
-  // ): Promise<UsersViewDto> {
-  //   return this.queryBus.execute<GetUserByIdOrFailQuery, UsersViewDto>(
-  //     new GetUserByIdOrFailQuery(id),
-  //   );
-  // }
-
   @Get()
   @HttpCode(200)
   @UseGuards(BasicAuthGuard)
