@@ -35,7 +35,7 @@ export class SendRecoveryCodeUseCase
 
     await this.passwordRecoveryRepository.save(foundPassRec!)
     try {
-      this.emailService.sendRecoveryCode(foundUser);
+      this.emailService.sendRecoveryCode(foundUser.email, foundPassRec!.recoveryCode as string);
     } catch (e) {
       console.error(e);
     }

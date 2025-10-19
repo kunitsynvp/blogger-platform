@@ -76,9 +76,9 @@ export class User {
     ) {
       throw new Error('invalid login');
     }
-    if (!emailConstraints.match.test(dto.email)) {
-      throw new Error('invalid email');
-    }
+    // if (!emailConstraints.match.test(dto.email)) {
+    //   throw new Error('invalid email');
+    // }
   }
 }
 

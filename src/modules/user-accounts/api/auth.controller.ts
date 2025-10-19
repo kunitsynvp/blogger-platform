@@ -37,7 +37,7 @@ import { UserInfoDto } from '../guards/dto/user-info-dto';
 import { LogoutCommand } from '../application/use-cases/auth/logout-use-case';
 import { CustomThrottlerGuard } from '../../../core/throttler/throttler';
 
-@UseGuards(CustomThrottlerGuard)
+// @UseGuards(CustomThrottlerGuard)
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -145,14 +145,4 @@ export class AuthController {
     );
   }
 
-  // @Get('get-users')
-  // @HttpCode(200)
-  // async getUsers(@Query() query: UsersQueryDto) {
-  //   return await this.usersSqlQueryRepository.findAllUsers(query);
-  // }
-  // @Get('get-user-by-id')
-  // @HttpCode(200)
-  // async getUsersById(@Body() dto: { id: string }) {
-  //   return await this.usersSqlRepository.findById(+dto.id);
-  // }
 }

@@ -13,7 +13,7 @@ export class CreateUserInputDto {
 
   @IsString()
   @IsEmail()
-  @Matches(emailConstraints.match)
+  //@Matches(emailConstraints.match)
   email: string;
 
   @IsStringWithTrim(

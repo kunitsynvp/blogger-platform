@@ -51,6 +51,6 @@ export class UpdateConfirmationCodeUseCase
 
     await this.emailConfirmationRepository.save(emailConfirmation);
 
-    this.emailService.sendConfirmationCode(foundUser);
+    this.emailService.sendConfirmationCode(foundUser.email, emailConfirmation.confirmationCode as string);
   }
 }

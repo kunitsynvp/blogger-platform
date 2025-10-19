@@ -10,8 +10,8 @@ export class TestingController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteAll() {
     const query = `
-        DELETE FROM "EmailConfirmation";
-        DELETE FROM "PasswordRecovery";
+        DELETE FROM "EmailConfirmations";
+        DELETE FROM "PasswordRecoveries";
         DELETE FROM "CommentLikes";
         DELETE FROM "PostLikes";
         DELETE FROM "Comments";

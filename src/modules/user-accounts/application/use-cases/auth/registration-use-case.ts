@@ -4,6 +4,7 @@ import { CreateUserInputDto } from '../../../api/input-dto/create-user-dto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UsersRepository } from '../../../infrastructure/users-repository';
 import { User } from '../../../domain/user/user.entity';
+import { EmailConfirmationRepository } from '../../../infrastructure/email-confirmation-repository';
 
 export class RegistrationCommand {
   constructor(public dto: CreateUserInputDto) {}
@@ -14,6 +15,7 @@ export class RegistrationUseCase
 {
   constructor(
     private usersRepository: UsersRepository,
+    private emailConfirmationRepository: EmailConfirmationRepository,
     private emailService: EmailService,
     private usersService: UsersService,
   ) {}
@@ -26,9 +28,10 @@ export class RegistrationUseCase
     );
 
     const foundUser = await this.usersRepository.findById(createdUserId);
+    const emailConfirmation = await this.emailConfirmationRepository.findByUserId(foundUser!.id)
 
     try {
-      this.emailService.sendConfirmationCode(foundUser as User);
+      this.emailService.sendConfirmationCode(foundUser!.email, emailConfirmation.confirmationCode as string);
     } catch (e) {
       console.error(e);
     }
