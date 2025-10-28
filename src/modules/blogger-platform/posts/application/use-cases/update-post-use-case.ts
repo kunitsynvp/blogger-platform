@@ -1,8 +1,8 @@
 import { UpdatePostDomainDto } from '../../domain/dto/update-post-domain-dto';
 import { UpdatePostDto } from '../../api/input-dto/update-post-dto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { PostsSqlRepository } from '../../infrastructure/posts.sql.repository';
-import { BlogsSqlRepository } from '../../../blogs/infrastructure/blogs.sql.repository';
+import { PostsRepository } from '../../infrastructure/posts-repository';
+import { BlogsRepository } from '../../../blogs/infrastructure/blogs.repository';
 
 export class UpdatePostCommand {
   constructor(
@@ -13,8 +13,8 @@ export class UpdatePostCommand {
 @CommandHandler(UpdatePostCommand)
 export class UpdatePostUseCase implements ICommandHandler<UpdatePostCommand> {
   constructor(
-    private postsRepository: PostsSqlRepository,
-    private blogsRepository: BlogsSqlRepository,
+    private postsRepository: PostsRepository,
+    private blogsRepository: BlogsRepository,
   ) {}
 
   async execute(command: UpdatePostCommand): Promise<void> {

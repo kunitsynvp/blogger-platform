@@ -1,14 +1,47 @@
 import { CreateBlogDomainDto } from './dto/create-blog-domain-dto';
 import { UpdateBlogDomainDto } from './dto/update-blog-domain-dto';
 import { blogConstraints } from './constraints/blog-constraints';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Post } from '../../posts/domain/post.entity';
 
+@Entity()
 export class Blog {
+  @PrimaryGeneratedColumn()
   id: number
+
+  @Column({
+    type: 'varchar',
+    length: 30,
+    collation: 'C'
+  })
   name: string;
+
+  @Column({
+    type: 'varchar',
+    length: 1000,
+    collation: 'C'
+  })
   description: string;
+
+  @Column({
+    type: 'varchar',
+    length: 200,
+    collation: 'C'
+  })
   websiteUrl: string;
+
+  @Column({
+    type: 'boolean'
+  })
   isMembership: boolean;
+
+  @Column({
+    type: 'timestamp without time zone'
+  })
   createdAt: Date;
+
+  @OneToMany(() => Post, p => p.blog)
+  posts: Post[];
 
   static createBlog(dto: CreateBlogDomainDto): Blog {
     const blog = new this();
@@ -45,10 +78,4 @@ export class Blog {
     this.websiteUrl = dto.websiteUrl;
   }
 }
-export type BlogDbType = {
-  name: string;
-  description: string;
-  websiteUrl: string;
-  isMembership: boolean;
-  createdAt: Date;
-}
+

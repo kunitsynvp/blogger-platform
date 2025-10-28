@@ -1,4 +1,14 @@
-import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Param,
+  Post,
+  Put,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { BlogsQueryDto } from './input-dto/blogs-query-dto';
 import { PaginatedViewDto } from '../../../../core/dto/base.paginated.view-dto';
 import { BlogsViewDto } from './view-dto/blogs-view-dto';
@@ -12,6 +22,11 @@ import { JwtOptionalAuthGuard } from '../../../user-accounts/guards/bearer/jwt-o
 import { OptionalCurrentUser } from '../../../user-accounts/guards/decorators/optional-current-user-param-decorator';
 import { UserContextDto } from '../../../user-accounts/guards/dto/user-context.dto';
 import { CustomParseIntPipe } from '../../../../core/pipes/int-transformation-pipe';
+import { BasicAuthGuard } from '../../../user-accounts/guards/basic/basic-auth-guard';
+import { CreateBlogInputDto } from './input-dto/blogs-create-dto';
+import { CreateBlogCommand } from '../application/use-cases/create-blog-use-case';
+import { UpdateBlogInputDto } from './input-dto/blogs-update-dto';
+import { UpdateBlogCommand } from '../application/use-cases/update-blog-use-case';
 
 @Controller('blogs')
 export class BlogsController {
@@ -28,20 +43,20 @@ export class BlogsController {
       PaginatedViewDto<BlogsViewDto[]>
     >(new GetBlogsQuery(query));
   }
-  // @Post() //TODO return after 18hw
-  // @UseGuards(BasicAuthGuard)
-  // async postBlog(
-  //   @Body() createBlogDto: CreateBlogInputDto,
-  // ): Promise<BlogsViewDto> {
-  //   const createdBlogId = await this.commandBus.execute<
-  //     CreateBlogCommand,
-  //     number
-  //   >(new CreateBlogCommand(createBlogDto));
-  //
-  //   return await this.queryBus.execute<GetBlogByIdOrFailQuery, BlogsViewDto>(
-  //     new GetBlogByIdOrFailQuery(createdBlogId),
-  //   );
-  // }
+  @Post()
+  @UseGuards(BasicAuthGuard)
+  async postBlog(
+    @Body() createBlogDto: CreateBlogInputDto,
+  ): Promise<BlogsViewDto> {
+    const createdBlogId = await this.commandBus.execute<
+      CreateBlogCommand,
+      number
+    >(new CreateBlogCommand(createBlogDto));
+
+    return await this.queryBus.execute<GetBlogByIdOrFailQuery, BlogsViewDto>(
+      new GetBlogByIdOrFailQuery(createdBlogId),
+    );
+  }
   @Get(':blogId/posts')
   @UseGuards(JwtOptionalAuthGuard)
   async getPostsForBlog(
@@ -87,17 +102,7 @@ export class BlogsController {
     );
   }
 
-  // @HttpCode(204)
-  // @UseGuards(BasicAuthGuard)
-  // @Put(':id')
-  // async putBlog(
-  //   @Param('id', CustomParseIntPipe) id: number,
-  //   @Body() updateBlogDto: UpdateBlogInputDto,
-  // ): Promise<void> {
-  //   return await this.commandBus.execute<UpdateBlogCommand, void>(
-  //     new UpdateBlogCommand(id, updateBlogDto),
-  //   );
-  // }
+
 
   // @HttpCode(204)
   // @Delete(':id')

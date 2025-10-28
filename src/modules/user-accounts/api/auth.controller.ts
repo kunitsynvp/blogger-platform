@@ -36,6 +36,7 @@ import { GetUserInfo } from '../../../core/decorators/user-info-decorator';
 import { UserInfoDto } from '../guards/dto/user-info-dto';
 import { LogoutCommand } from '../application/use-cases/auth/logout-use-case';
 import { CustomThrottlerGuard } from '../../../core/throttler/throttler';
+import { SkipThrottle } from '@nestjs/throttler';
 
 // @UseGuards(CustomThrottlerGuard)
 @Controller('auth')
@@ -115,7 +116,7 @@ export class AuthController {
   }
   @Get('me')
   @UseGuards(JwtAccessTokenAuthGuard)
-  //@SkipThrottle()
+  // @SkipThrottle()
   async authMeHandler(@CurrentUser() user: UserContextDto): Promise<MeViewDto> {
     return await this.queryBus.execute<GetMeQuery, MeViewDto>(
       new GetMeQuery(user.userId),
@@ -124,7 +125,7 @@ export class AuthController {
   @Post('logout')
   @HttpCode(204)
   @UseGuards(JwtRefreshTokenAuthGuard)
-  //@SkipThrottle()
+  // @SkipThrottle()
   async logout(@GetUserInfo() dto: UserInfoDto) {
     return await this.commandBus.execute<LogoutCommand, void>(
       new LogoutCommand(dto.userId, dto.deviceId),

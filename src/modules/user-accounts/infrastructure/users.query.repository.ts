@@ -3,48 +3,64 @@ import { UsersQueryDto } from '../api/input-dto/users-query-dto';
 import { UsersViewDto } from '../api/view-dto/users-view-dto';
 import { PaginatedViewDto } from '../../../core/dto/base.paginated.view-dto';
 import { MeViewDto } from '../api/view-dto/me-view-dto';
-import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import { plainToInstance } from 'class-transformer';
+import { InjectRepository } from '@nestjs/typeorm';
 import { DomainException } from '../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../core/exceptions/domain-exception-codes';
-import { User, UserDbType } from '../domain/user/user.entity';
-import { DataSource, FindOptionsWhere, ILike, Repository } from 'typeorm';
+import { User } from '../domain/user/user.entity';
+import { FindOptionsWhere, ILike, Repository } from 'typeorm';
 
 @Injectable()
 export class UsersQueryRepository {
-  constructor(
-    @InjectDataSource()
-    private dataSource: DataSource,
-
-    @InjectRepository(User) protected users: Repository<User>
-  ) {}
+  constructor(@InjectRepository(User) protected users: Repository<User>) {}
   async findAllUsers(
     query: UsersQueryDto,
   ): Promise<PaginatedViewDto<UsersViewDto[]>> {
-     const whereOptions: FindOptionsWhere<User>[] = [];
+    const whereOptions: FindOptionsWhere<User>[] = [];
     if (query.searchLoginTerm) {
-      whereOptions.push({login: ILike(`%${query.searchLoginTerm}%`)});
+      whereOptions.push({ login: ILike(`%${query.searchLoginTerm}%`) });
     }
     if (query.searchEmailTerm) {
-      whereOptions.push({email: ILike(`%${query.searchEmailTerm}%`)});
+      whereOptions.push({ email: ILike(`%${query.searchEmailTerm}%`) });
     }
 
-    const [ items, totalCount] = await this.users.findAndCount({
-      where: whereOptions,
-      order: { [query.sortBy]:query.sortDirection },
-      skip: query.calculateSkip(),
-      take: query.pageSize,
-    })
+    const sortDirection = query.sortDirection.toUpperCase() as 'ASC' | 'DESC';
+
+    const items= await this.users
+      .createQueryBuilder('u')
+      .select([
+        'u.id as id',
+        'u.login as login',
+        'u.email as email',
+        'u."createdAt" as "createdAt"'])
+      .where(whereOptions)
+      .orderBy(`"${query.sortBy}"`,`${sortDirection}`)
+      .take(query.pageSize)
+      .skip(query.calculateSkip())
+      .getRawMany<UsersViewDto>()
+
+    const totalCount= await this.users
+      .createQueryBuilder('u')
+      .where(whereOptions)
+      .getCount()
 
     return PaginatedViewDto.mapToView({
       page: query.pageNumber,
       size: query.pageSize,
       totalCount: totalCount,
-      items: items.map(UsersViewDto.mapToView),
+      items: items,
     });
   }
   async findByIdOrFail(id: number): Promise<UsersViewDto> {
-    const foundUser = await this.users.findOneBy({ id: id });
+    const foundUser = await this.users
+      .createQueryBuilder('u')
+      .select([
+        'u.id as id',
+        'u.login as login',
+        'u.email as email',
+        'u."createdAt" as "createdAt"'
+      ])
+      .where('u.id = :userId', { userId: id })
+      .getRawOne<UsersViewDto>()
 
     if (!foundUser) {
       throw new DomainException({
@@ -53,21 +69,21 @@ export class UsersQueryRepository {
         field: 'id',
       });
     }
-    return UsersViewDto.mapToView(foundUser);
+    return foundUser
   }
-  async me(id: string): Promise<MeViewDto> {
-    const foundUser: UserDbType[] = await this.dataSource.query(
-      `SELECT * FROM "Users" WHERE id = $1`,
-      [id],
-    );
-    if (foundUser.length === 0) {
+  async me(id: number): Promise<MeViewDto> {
+    const foundUser: MeViewDto | undefined = await this.users
+      .createQueryBuilder('u')
+      .select(['u.id as "userId"', 'u.login as login', 'u.email as email'])
+      .where('u.id = :id', { id: id })
+      .getRawOne();
+    if (!foundUser) {
       throw new DomainException({
         code: DomainExceptionCode.NotFound,
         message: 'User not found',
         field: 'id',
       });
     }
-    const instanceUser = plainToInstance(User, foundUser[0]);
-    return MeViewDto.mapToView(instanceUser);
+    return foundUser;
   }
 }

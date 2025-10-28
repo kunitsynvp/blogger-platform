@@ -2,7 +2,7 @@ import { PaginatedViewDto } from '../../../../../core/dto/base.paginated.view-dt
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { PostsViewDto } from '../../api/view-dto/posts-view-dto';
 import { PostsQueryDto } from '../../api/input-dto/posts-query-dto';
-import { PostsSqlQueryRepository } from '../../infrastructure/posts-sql.query.repository';
+import { PostsQueryRepository } from '../../infrastructure/posts-query-repository';
 
 export class GetPostsQuery {
   constructor(
@@ -14,7 +14,7 @@ export class GetPostsQuery {
 export class GetPostsQueryHandler
   implements IQueryHandler<GetPostsQuery, PaginatedViewDto<PostsViewDto[]>>
 {
-  constructor(private postsQueryRepository: PostsSqlQueryRepository) {}
+  constructor(private postsQueryRepository: PostsQueryRepository) {}
   async execute(
     query: GetPostsQuery,
   ): Promise<PaginatedViewDto<PostsViewDto[]>> {

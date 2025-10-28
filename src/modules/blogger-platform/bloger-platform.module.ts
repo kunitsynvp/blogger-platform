@@ -29,20 +29,23 @@ import { DeleteCommentUseCase } from './comments/application/use-cases/delete-co
 import { PostLikeStatusUseCase } from './posts-likes/application/use-cases/post-like-status-use-case';
 import { PostLikeConfig } from './posts-likes/config/post-likes-config';
 import { BloggerPlatformConfig } from './config/blogger-platform-config';
-import { BlogsSqlRepository } from './blogs/infrastructure/blogs.sql.repository';
-import { BlogsSqlQueryRepository } from './blogs/infrastructure/blogs.sql.query-repository';
-import { PostsSqlRepository } from './posts/infrastructure/posts.sql.repository';
-import { PostsSqlQueryRepository } from './posts/infrastructure/posts-sql.query.repository';
+import { BlogsRepository } from './blogs/infrastructure/blogs.repository';
+import { BlogsQueryRepository } from './blogs/infrastructure/blogs-query-repository';
+import { PostsRepository } from './posts/infrastructure/posts-repository';
+import { PostsQueryRepository } from './posts/infrastructure/posts-query-repository';
 import { BlogsSAController } from './blogs/api/blogs.sa.controller';
 import { UpdatePostForBlogUseCase } from './posts/application/use-cases/update-post-for-blog-use-case';
 import { CommentsSqlRepository } from './comments/infrastructure/comments.sql.repository';
 import { CommentLikeSqlQueryRepository } from './comments-likes/infrastructure/comment-like-sql-query-repository';
 import { PostLikeSqlRepository } from './posts-likes/infrastructure/post-like-sql.repository';
 import { CommentsSqlQueryRepository } from './comments/infrastructure/comments-sql-query.repository';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Blog } from './blogs/domain/blog.entity';
+import { Post } from './posts/domain/post.entity';
 
 const useCases = [
   //blogs
-  CreateBlogUseCase, //TODO RETURN ALL USE CASES AFTER 18hw
+  CreateBlogUseCase,
   DeleteBlogUseCase,
   UpdateBlogUseCase,
   //posts
@@ -71,21 +74,18 @@ const queryHandlers = [
 ];
 @Module({
   imports: [
-    // MongooseModule.forFeature([
-    //
-    // ]),
-    UserAccountsModule,
-  ],
+    TypeOrmModule.forFeature([Blog, Post]),
+    UserAccountsModule],
   exports: [],
   providers: [
     ...useCases,
     ...queryHandlers,
-    BlogsSqlRepository,
-    BlogsSqlQueryRepository,
+    BlogsRepository,
+    BlogsQueryRepository,
     CommentsSqlRepository,
     CommentsSqlQueryRepository,
-    PostsSqlRepository,
-    PostsSqlQueryRepository,
+    PostsRepository,
+    PostsQueryRepository,
     CommentLikeSqlRepository,
     CommentLikeSqlQueryRepository,
     PostLikeSqlRepository,

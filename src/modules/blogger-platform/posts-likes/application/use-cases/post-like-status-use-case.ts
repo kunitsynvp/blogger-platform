@@ -2,7 +2,7 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { CreatePostLikeStatusDto } from '../../domain/dto/create-post-like-status-dto';
 import { PostLike } from '../../domain/posts-like-entity';
 import { CreatePostLikeCommandDto } from '../dto/create-post-like-command-dto';
-import { PostsSqlRepository } from '../../../posts/infrastructure/posts.sql.repository';
+import { PostsRepository } from '../../../posts/infrastructure/posts-repository';
 import { PostLikeSqlRepository } from '../../infrastructure/post-like-sql.repository';
 import { UsersExternalSqlRepository } from '../../../../user-accounts/infrastructure/external/users.external.sql.repository';
 
@@ -15,7 +15,7 @@ export class PostLikeStatusUseCase
 {
   constructor(
     private postLikeRepository: PostLikeSqlRepository,
-    private postsRepository: PostsSqlRepository,
+    private postsRepository: PostsRepository,
     private usersRepository: UsersExternalSqlRepository,
   ) {}
   async execute(command: PostLikeStatusCommand): Promise<void> {

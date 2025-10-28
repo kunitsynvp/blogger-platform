@@ -44,6 +44,15 @@ export class BlogsSAController {
     private commandBus: CommandBus,
     private queryBus: QueryBus,
   ) {}
+  @Get(':id')
+  async getBlogById(
+    @Param('id', CustomParseIntPipe) id: number,
+  ): Promise<BlogsViewDto> {
+    return this.queryBus.execute<GetBlogByIdOrFailQuery, BlogsViewDto>(
+      new GetBlogByIdOrFailQuery(id),
+    );
+  }
+
   @Get()
   async getAllBlogs(
     @Query() query: BlogsQueryDto,
@@ -53,6 +62,7 @@ export class BlogsSAController {
       PaginatedViewDto<BlogsViewDto[]>
     >(new GetBlogsQuery(query));
   }
+
   @Post()
   async postBlog(
     @Body() createBlogDto: CreateBlogInputDto,
@@ -66,6 +76,28 @@ export class BlogsSAController {
       new GetBlogByIdOrFailQuery(createdBlogId),
     );
   }
+
+  @HttpCode(204)
+  @Put(':id')
+  async putBlog(
+    @Param('id', CustomParseIntPipe) id: number,
+    @Body() updateBlogDto: UpdateBlogInputDto,
+  ): Promise<void> {
+    return await this.commandBus.execute<UpdateBlogCommand, void>(
+      new UpdateBlogCommand(id, updateBlogDto),
+    );
+  }
+
+  @HttpCode(204)
+  @Delete(':blogId')
+  async deleteBlog(
+    @Param('blogId', CustomParseIntPipe) blogId: number,
+  ): Promise<void> {
+    return await this.commandBus.execute<DeleteBlogCommand, void>(
+      new DeleteBlogCommand(blogId),
+    );
+  }
+
   @Get(':blogId/posts')
   async getPostsForBlog(
     @OptionalCurrentUser() user: UserContextDto,
@@ -118,25 +150,6 @@ export class BlogsSAController {
       new UpdatePostForBlogCommand(commandDto),
     );
   }
-  @Get(':id')
-  async getBlogById(
-    @Param('id', CustomParseIntPipe) id: number,
-  ): Promise<BlogsViewDto> {
-    return this.queryBus.execute<GetBlogByIdOrFailQuery, BlogsViewDto>(
-      new GetBlogByIdOrFailQuery(id),
-    );
-  }
-
-  @HttpCode(204)
-  @Put(':id')
-  async putBlog(
-    @Param('id', CustomParseIntPipe) id: number,
-    @Body() updateBlogDto: UpdateBlogInputDto,
-  ): Promise<void> {
-    return await this.commandBus.execute<UpdateBlogCommand, void>(
-      new UpdateBlogCommand(id, updateBlogDto),
-    );
-  }
 
   @HttpCode(204)
   @Delete(':blogId/posts/:postId')
@@ -151,13 +164,5 @@ export class BlogsSAController {
       new DeletePostCommand(postId),
     );
   }
-  @HttpCode(204)
-  @Delete(':blogId')
-  async deleteBlog(
-    @Param('blogId', CustomParseIntPipe) blogId: number,
-  ): Promise<void> {
-    return await this.commandBus.execute<DeleteBlogCommand, void>(
-      new DeleteBlogCommand(blogId),
-    );
-  }
+
 }

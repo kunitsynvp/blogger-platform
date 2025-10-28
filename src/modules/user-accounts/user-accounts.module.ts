@@ -42,6 +42,8 @@ import { PasswordRecovery } from './domain/user/password-recovery.entity';
 import { User } from './domain/user/user.entity';
 import { PasswordRecoveryRepository } from './infrastructure/password-recovery-repository';
 import { EmailConfirmationRepository } from './infrastructure/email-confirmation-repository';
+import { Blog } from '../blogger-platform/blogs/domain/blog.entity';
+import { Post } from '../blogger-platform/posts/domain/post.entity';
 
 const useCases = [
   //auth
@@ -68,9 +70,6 @@ const queryHandlers = [
 ];
 @Module({
   imports: [
-    // MongooseModule.forFeature([
-    //   { name: UserMongoose.name, schema: UserSchema },
-    // ]),
     TypeOrmModule.forFeature([User, EmailConfirmation, PasswordRecovery, Session]),
     NotificationsModule,
     JwtModule,

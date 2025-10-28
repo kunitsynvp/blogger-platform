@@ -1,6 +1,6 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { BlogsViewDto } from '../../api/view-dto/blogs-view-dto';
-import { BlogsSqlQueryRepository } from '../../infrastructure/blogs.sql.query-repository';
+import { BlogsQueryRepository } from '../../infrastructure/blogs-query-repository';
 
 export class GetBlogByIdOrFailQuery {
   constructor(public id: number) {}
@@ -9,7 +9,7 @@ export class GetBlogByIdOrFailQuery {
 export class GetBlogByIdOrFailQueryHandler
   implements IQueryHandler<GetBlogByIdOrFailQuery, BlogsViewDto>
 {
-  constructor(private blogsQueryRepository: BlogsSqlQueryRepository) {}
+  constructor(private blogsQueryRepository: BlogsQueryRepository) {}
   async execute(query: GetBlogByIdOrFailQuery): Promise<BlogsViewDto> {
     return await this.blogsQueryRepository.findBlogByIdOrFail(query.id);
   }

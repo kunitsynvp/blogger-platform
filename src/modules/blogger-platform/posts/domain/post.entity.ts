@@ -4,13 +4,50 @@ import { UpdatePostDomainDto } from './dto/update-post-domain-dto';
 import { postConstraints } from './constraints/post-constraints';
 import { LikeStatus } from '../../comments/domain/enums/like-status-enum';
 import { LikeDetailsViewDto } from '../api/view-dto/posts-view-dto';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { Blog } from '../../blogs/domain/blog.entity';
 
+@Entity()
 export class Post {
+  @PrimaryGeneratedColumn()
   id: number;
+
+  @Column({
+    type: 'varchar',
+    length: 60,
+    collation: 'C'
+  })
   title: string;
+
+  @Column({
+    type: 'varchar',
+    length: 200,
+    //collation: 'C'
+  })
   shortDescription: string;
+
+  @Column({
+    type: 'varchar',
+    length: 60,
+    //collation: 'C'
+  })
   content: string;
+
+  @ManyToOne(() => Blog, b => b.posts)
+  @JoinColumn()
+  blog:Blog
+  @Column({ type: 'int' })
   blogId: number;
+
+  @Column({
+    type: 'timestamp without time zone',
+  })
   createdAt: Date;
 
   static createPost(dto: CreatePostDomainDto): Post {
@@ -29,6 +66,7 @@ export class Post {
 
     return newPost;
   }
+
   updatePost(dto: UpdatePostDomainDto) {
     const excDto = new CheckExceptionsPostDto();
     excDto.title = dto.title;

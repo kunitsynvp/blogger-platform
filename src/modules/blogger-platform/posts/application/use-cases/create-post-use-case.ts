@@ -2,8 +2,10 @@ import { CreatePostForBlogDto } from '../../api/input-dto/create-post-for-blog-d
 import { Post } from '../../domain/post.entity';
 import { CreatePostDomainDto } from '../../domain/dto/create-post-domain-dto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { BlogsSqlRepository } from '../../../blogs/infrastructure/blogs.sql.repository';
-import { PostsSqlRepository } from '../../infrastructure/posts.sql.repository';
+import {
+  BlogsRepository,
+} from '../../../blogs/infrastructure/blogs.repository';
+import { PostsRepository } from '../../infrastructure/posts-repository';
 
 export class CreatePostCommand {
   constructor(public dto: CreatePostForBlogDto) {}
@@ -11,8 +13,8 @@ export class CreatePostCommand {
 @CommandHandler(CreatePostCommand)
 export class CreatePostUseCase implements ICommandHandler<CreatePostCommand> {
   constructor(
-    private postsRepository: PostsSqlRepository,
-    private blogsRepository: BlogsSqlRepository,
+    private postsRepository: PostsRepository,
+    private blogsRepository: BlogsRepository,
   ) {}
   async execute(command: CreatePostCommand): Promise<number> {
     await this.blogsRepository.findBlogByIdOrFail(command.dto.blogId);
@@ -26,8 +28,9 @@ export class CreatePostUseCase implements ICommandHandler<CreatePostCommand> {
 
     const newPost = Post.createPost(createDto);
 
-    const createdPostId = await this.postsRepository.createPost(newPost);
+    const createdPost = await this.postsRepository.save(newPost);
+    console.log("createdPost:" ,createdPost);
 
-    return createdPostId;
+    return createdPost.id;
   }
 }

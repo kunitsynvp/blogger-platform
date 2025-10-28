@@ -2,7 +2,7 @@ import { type INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { CreateBlogInputDto } from '../../../../src/modules/blogger-platform/blogs/api/input-dto/blogs-create-dto';
 import { BlogsViewDto } from '../../../../src/modules/blogger-platform/blogs/api/view-dto/blogs-view-dto';
-import { BlogsSqlRepository } from '../../../../src/modules/blogger-platform/blogs/infrastructure/blogs.sql.repository';
+import { BlogsSqlRepository } from '../../../../src/modules/blogger-platform/blogs/infrastructure/blogs.repository';
 
 export class BlogsTestManager {
   private readonly BasicAuthString: string = 'Basic YWRtaW46cXdlcnR5';

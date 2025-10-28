@@ -5,7 +5,7 @@ import { PostsViewDto } from '../../../../src/modules/blogger-platform/posts/api
 import { LikeStatus } from '../../../../src/modules/blogger-platform/comments/domain/enums/like-status-enum';
 import { delay } from '../delay';
 import { BlogsViewDto } from '../../../../src/modules/blogger-platform/blogs/api/view-dto/blogs-view-dto';
-import { PostsSqlRepository } from '../../../../src/modules/blogger-platform/posts/infrastructure/posts.sql.repository';
+import { PostsRepository } from '../../../../src/modules/blogger-platform/posts/infrastructure/posts-repository';
 import { Post } from '../../../../src/modules/blogger-platform/posts/domain/post.entity';
 
 export class PostsTestManager {
@@ -17,11 +17,11 @@ export class PostsTestManager {
     content: 'newContent',
   };
 
-  private postsRepository: PostsSqlRepository;
+  private postsRepository: PostsRepository;
   private blogsTestManager: BlogsTestManager;
 
   constructor(private app: INestApplication) {
-    this.postsRepository = this.app.get<PostsSqlRepository>(PostsSqlRepository);
+    this.postsRepository = this.app.get<PostsRepository>(PostsRepository);
     this.blogsTestManager = new BlogsTestManager(this.app);
   }
 

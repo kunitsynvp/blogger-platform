@@ -2,14 +2,14 @@ import { CreateBlogInputDto } from '../../api/input-dto/blogs-create-dto';
 import { CreateBlogDomainDto } from '../../domain/dto/create-blog-domain-dto';
 import { Blog } from '../../domain/blog.entity';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { BlogsSqlRepository } from '../../infrastructure/blogs.sql.repository';
+import { BlogsRepository } from '../../infrastructure/blogs.repository';
 
 export class CreateBlogCommand {
   constructor(public dto: CreateBlogInputDto) {}
 }
 @CommandHandler(CreateBlogCommand)
 export class CreateBlogUseCase implements ICommandHandler<CreateBlogCommand> {
-  constructor(private blogsRepository: BlogsSqlRepository) {}
+  constructor(private blogsRepository: BlogsRepository) {}
   async execute(command: CreateBlogCommand): Promise<number> {
     const domainDto = new CreateBlogDomainDto();
     domainDto.name = command.dto.name;

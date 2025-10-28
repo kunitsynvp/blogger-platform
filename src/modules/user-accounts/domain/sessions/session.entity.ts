@@ -10,7 +10,7 @@ export class Session {
   @Column({type: 'varchar', length: 30})
   ip: string;
 
-  @Column({type: 'varchar', length: 30})
+  @Column({type: 'varchar', length: 1000})
   title: string;
 
   @Column({type: 'varchar', length: 50})
