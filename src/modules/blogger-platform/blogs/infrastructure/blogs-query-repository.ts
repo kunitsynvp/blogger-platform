@@ -23,6 +23,7 @@ export class BlogsQueryRepository {
     if(query.searchNameTerm) {
       whereOptions.push({ name : ILike(`%${query.searchNameTerm}%`)})
     }
+
     const items = await this.blogs
       .createQueryBuilder('b')
       .select([
@@ -34,9 +35,10 @@ export class BlogsQueryRepository {
         'b."isMembership" as "isMembership"',
       ])
       .where(whereOptions)
+      .orderBy(`b.${query.sortBy}`, `${query.sortDirection.toUpperCase()}` as "ASC" | "DESC" )
       .skip(query.calculateSkip())
       .take(query.pageSize)
-      .getRawMany<BlogsViewDto>()
+      .getRawMany<BlogDbType>()
 
     const totalCount = await this.blogs
       .createQueryBuilder('b')
@@ -47,7 +49,7 @@ export class BlogsQueryRepository {
       page: query.pageNumber,
       size: query.pageSize,
       totalCount: totalCount,
-      items: items,
+      items: items.map(BlogsViewDto.mapToView),
     });
   }
   async findBlogByIdOrFail(id: number): Promise<BlogsViewDto> {
@@ -62,7 +64,7 @@ export class BlogsQueryRepository {
         'b."isMembership" as "isMembership"',
       ])
       .where('b.id = :id', {id: id})
-      .getRawOne<BlogsViewDto>()
+      .getRawOne<BlogDbType>()
 
     if (!foundBlog) {
       throw new DomainException({
@@ -72,6 +74,15 @@ export class BlogsQueryRepository {
       });
     }
 
-    return foundBlog
+    return BlogsViewDto.mapToView(foundBlog)
   }
+
+}
+export type BlogDbType = {
+  id: number;
+  name: string;
+  description: string;
+  websiteUrl: string;
+  createdAt: Date;
+  isMembership: boolean;
 }

@@ -1,11 +1,36 @@
 import { LikeStatus } from '../../comments/domain/enums/like-status-enum';
 import { CreatePostLikeStatusDto } from './dto/create-post-like-status-dto';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { Post } from '../../posts/domain/post.entity';
+import { User } from '../../../user-accounts/domain/user/user.entity';
 
+@Entity()
 export class PostLike {
+  @PrimaryGeneratedColumn()
   id: number;
-  userId: number;
+
+  @ManyToOne(type => Post, post => post.postLikes)
+  @JoinColumn()
+  post: Post
+  @Column({type: 'int'})
   postId: number;
+
+  @ManyToOne(type => User, user => user.postLikes)
+  @JoinColumn()
+  user: User
+  @Column({type: 'int'})
+  userId: number;
+
+  @Column({enum: LikeStatus})
   likeStatus: LikeStatus;
+
+  @Column({type: 'timestamp without time zone'})
   createdAt: Date;
 
   static createLikeStatus(dto: CreatePostLikeStatusDto): PostLike {
@@ -16,6 +41,7 @@ export class PostLike {
     newLikeStatus.userId = dto.userId
     newLikeStatus.postId = dto.postId
     newLikeStatus.likeStatus = dto.likeStatus
+    newLikeStatus.createdAt = new Date()
     return newLikeStatus
   }
   updateLikeStatus(newLikeStatus: LikeStatus): void {

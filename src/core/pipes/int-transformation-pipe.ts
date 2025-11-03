@@ -10,7 +10,7 @@ export class CustomParseIntPipe
     const int = parseInt(value,10);
     if (Number.isNaN(int)) {
       throw new DomainException({
-        code: DomainExceptionCode.BadRequest,
+        code: DomainExceptionCode.NotFound, //TODO remove after hw 21
         message:"Not valid id",
         field: 'id'
       });

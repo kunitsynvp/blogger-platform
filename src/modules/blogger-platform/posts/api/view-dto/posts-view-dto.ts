@@ -1,5 +1,5 @@
-import { PostCompoundDbType } from '../../domain/post.entity';
 import { LikeStatus } from '../../../comments/domain/enums/like-status-enum';
+import { PostQueryDbType } from '../../infrastructure/posts-query-repository';
 
 export class PostsViewDto {
   id: string;
@@ -11,7 +11,7 @@ export class PostsViewDto {
   createdAt: string;
   extendedLikesInfo: ExtendedLikesInfo;
 
-  static mapToView(post: PostCompoundDbType): PostsViewDto {
+  static mapToView(post: PostQueryDbType): PostsViewDto {
     const newDto = new PostsViewDto();
     newDto.id = post.id.toString();
     newDto.title = post.title;
@@ -33,6 +33,7 @@ export class PostsViewDto {
         };
       }),
     };
+
     return newDto;
   }
 }

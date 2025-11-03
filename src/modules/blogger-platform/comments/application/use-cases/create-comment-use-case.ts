@@ -1,7 +1,7 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { CreateCommentCommandDto } from '../dto/create-comment-command-dto';
 import { PostsRepository } from '../../../posts/infrastructure/posts-repository';
-import { CommentsSqlRepository } from '../../infrastructure/comments.sql.repository';
+import { CommentsRepository } from '../../infrastructure/comments.repository';
 import { UsersExternalSqlRepository } from '../../../../user-accounts/infrastructure/external/users.external.sql.repository';
 import { Comment } from '../../domain/comment.entity';
 
@@ -15,7 +15,7 @@ export class CreateCommentUseCase
   constructor(
     private usersRepository: UsersExternalSqlRepository,
     private postsRepository: PostsRepository,
-    private commentsRepository: CommentsSqlRepository,
+    private commentsRepository: CommentsRepository,
   ) {}
   async execute(command: CreateCommentCommand): Promise<number> {
     await this.usersRepository.findByIdOrFail(
@@ -30,7 +30,7 @@ export class CreateCommentUseCase
       postId: command.dto.postId,
     });
 
-    const createdCommentId = await this.commentsRepository.createComment(newComment);
-    return createdCommentId;
+    const createdComment = await this.commentsRepository.save(newComment);
+    return createdComment.id
   }
 }

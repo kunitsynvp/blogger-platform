@@ -2,17 +2,17 @@ import { type INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { CommentsViewDto } from '../../../../src/modules/blogger-platform/comments/api/view-dto/comments-view-dto';
 import { LikeStatus } from '../../../../src/modules/blogger-platform/comments/domain/enums/like-status-enum';
-import { CommentsSqlQueryRepository } from '../../../../src/modules/blogger-platform/comments/infrastructure/comments-sql-query.repository';
+import { CommentsQueryRepository } from '../../../../src/modules/blogger-platform/comments/infrastructure/comments-query.repository';
 
 export class CommentsTestManager {
-  private commentsQueryRepository: CommentsSqlQueryRepository;
+  private commentsQueryRepository: CommentsQueryRepository;
   private defaults: {
     content: 'newVeryLongContentAtLeast21Characters';
   };
 
   constructor(private app: INestApplication) {
-    this.commentsQueryRepository = this.app.get<CommentsSqlQueryRepository>(
-      CommentsSqlQueryRepository,
+    this.commentsQueryRepository = this.app.get<CommentsQueryRepository>(
+      CommentsQueryRepository,
     );
   }
   async createCommentInForPost(

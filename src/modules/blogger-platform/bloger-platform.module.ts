@@ -13,7 +13,7 @@ import { GetPostsForBlogQueryHandler } from './posts/application/queries/get-pos
 import { GetBlogByIdOrFailQueryHandler } from './blogs/application/queries/get-blog-by-id-or-fail-query';
 import { GetPostByIdOrFailQueryHandler } from './posts/application/queries/get-post-by-id-or-fail-query';
 import { CommentLikeStatusUseCase } from './comments-likes/application/use-cases/comment-like-status-use-case';
-import { CommentLikeSqlRepository } from './comments-likes/infrastructure/comment-like-sql-repository';
+import { CommentLikeRepository } from './comments-likes/infrastructure/comment-like-repository';
 import { JwtService } from '@nestjs/jwt';
 import {
   ACCESS_TOKEN_INJECT_TOKEN,
@@ -35,13 +35,15 @@ import { PostsRepository } from './posts/infrastructure/posts-repository';
 import { PostsQueryRepository } from './posts/infrastructure/posts-query-repository';
 import { BlogsSAController } from './blogs/api/blogs.sa.controller';
 import { UpdatePostForBlogUseCase } from './posts/application/use-cases/update-post-for-blog-use-case';
-import { CommentsSqlRepository } from './comments/infrastructure/comments.sql.repository';
-import { CommentLikeSqlQueryRepository } from './comments-likes/infrastructure/comment-like-sql-query-repository';
-import { PostLikeSqlRepository } from './posts-likes/infrastructure/post-like-sql.repository';
-import { CommentsSqlQueryRepository } from './comments/infrastructure/comments-sql-query.repository';
+import { CommentsRepository } from './comments/infrastructure/comments.repository';
+import { PostLikeRepository } from './posts-likes/infrastructure/post-like-repository';
+import { CommentsQueryRepository } from './comments/infrastructure/comments-query.repository';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Blog } from './blogs/domain/blog.entity';
 import { Post } from './posts/domain/post.entity';
+import { Comment } from './comments/domain/comment.entity';
+import { CommentLike } from './comments-likes/domain/comments-like.entity';
+import { PostLike } from './posts-likes/domain/posts-like.entity';
 
 const useCases = [
   //blogs
@@ -74,7 +76,7 @@ const queryHandlers = [
 ];
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Blog, Post]),
+    TypeOrmModule.forFeature([Blog, Post, Comment, CommentLike, PostLike]),
     UserAccountsModule],
   exports: [],
   providers: [
@@ -82,14 +84,12 @@ const queryHandlers = [
     ...queryHandlers,
     BlogsRepository,
     BlogsQueryRepository,
-    CommentsSqlRepository,
-    CommentsSqlQueryRepository,
+    CommentsRepository,
+    CommentsQueryRepository,
     PostsRepository,
     PostsQueryRepository,
-    CommentLikeSqlRepository,
-    CommentLikeSqlQueryRepository,
-    PostLikeSqlRepository,
-    //PostLikeSqlQueryRepository,//TODO DO LOGIC IF NEEDED
+    CommentLikeRepository,
+    PostLikeRepository,
     PostLikeConfig,
     BloggerPlatformConfig,
     {

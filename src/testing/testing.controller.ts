@@ -12,14 +12,15 @@ export class TestingController {
     const query = `
         DELETE FROM "EmailConfirmations";
         DELETE FROM "PasswordRecoveries";
+        DELETE FROM "Sessions";
         DELETE FROM "CommentLikes";
         DELETE FROM "PostLikes";
         DELETE FROM "Comments";
-        DELETE FROM "Sessions";
         DELETE FROM "Posts";
         DELETE FROM "Blogs";
         DELETE FROM "Users";
     `;
+
     await this.datasource.query(query);
     return {
       status: 'succeeded',

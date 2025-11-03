@@ -13,6 +13,9 @@ import {
 import { EmailConfirmation } from './email-confirmation.entity';
 import { Session } from '../sessions/session.entity';
 import { PasswordRecovery } from './password-recovery.entity';
+import { Comment } from '../../../blogger-platform/comments/domain/comment.entity';
+import { CommentLike } from '../../../blogger-platform/comments-likes/domain/comments-like.entity';
+import { PostLike } from '../../../blogger-platform/posts-likes/domain/posts-like.entity';
 
 @Entity()
 export class User {
@@ -52,6 +55,15 @@ export class User {
 
   @OneToMany(() => Session, (s) => s.user)
   sessions: Session[];
+
+  @OneToMany(() => Comment, (c) => c.user)
+  comments: Comment[];
+
+  @OneToMany(() => CommentLike, (cl) => cl.user)
+  commentLikes: CommentLike[];
+
+  @OneToMany(() => PostLike, (pl) => pl.user)
+  postLikes: PostLike[];
 
   static createUser(dto: CreateUserDomainDto): User {
     const user = new User();

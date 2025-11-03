@@ -9,9 +9,12 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Blog } from '../../blogs/domain/blog.entity';
+import { Comment } from '../../comments/domain/comment.entity';
+import { PostLike } from '../../posts-likes/domain/posts-like.entity';
 
 @Entity()
 export class Post {
@@ -44,6 +47,12 @@ export class Post {
   blog:Blog
   @Column({ type: 'int' })
   blogId: number;
+
+  @OneToMany(() => Comment, c => c.post)
+  comments: Comment[];
+
+  @OneToMany(() => PostLike, pl => pl.post)
+  postLikes: PostLike[];
 
   @Column({
     type: 'timestamp without time zone',

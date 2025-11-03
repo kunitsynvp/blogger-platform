@@ -1,7 +1,7 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { CommentsViewDto } from '../../api/view-dto/comments-view-dto';
 import { UserContextDto } from '../../../../user-accounts/guards/dto/user-context.dto';
-import { CommentsSqlQueryRepository } from '../../infrastructure/comments-sql-query.repository';
+import { CommentsQueryRepository } from '../../infrastructure/comments-query.repository';
 
 export class GetCommentByIdOrFailQuery {
   constructor(
@@ -13,7 +13,7 @@ export class GetCommentByIdOrFailQuery {
 export class GetCommentByIdOrFailQueryHandler
   implements IQueryHandler<GetCommentByIdOrFailQuery, CommentsViewDto>
 {
-  constructor(private commentsQueryRepository: CommentsSqlQueryRepository) {}
+  constructor(private commentsQueryRepository: CommentsQueryRepository) {}
   async execute(query: GetCommentByIdOrFailQuery): Promise<CommentsViewDto> {
     return await this.commentsQueryRepository.findByIdOrFail(
       query.id,

@@ -3,7 +3,7 @@ import { CommentsViewDto } from '../../api/view-dto/comments-view-dto';
 import { CommentsQueryDto } from '../../api/input-dto/comments-query-dto';
 import { PaginatedViewDto } from '../../../../../core/dto/base.paginated.view-dto';
 import { PostsQueryRepository } from '../../../posts/infrastructure/posts-query-repository';
-import { CommentsSqlQueryRepository } from '../../infrastructure/comments-sql-query.repository';
+import { CommentsQueryRepository } from '../../infrastructure/comments-query.repository';
 
 export class GetCommentsForPostQuery {
   constructor(
@@ -18,7 +18,7 @@ export class GetCommentsForPostQueryHandler
     IQueryHandler<GetCommentsForPostQuery, PaginatedViewDto<CommentsViewDto[]>>
 {
   constructor(
-    private commentsQueryRepository: CommentsSqlQueryRepository,
+    private commentsQueryRepository: CommentsQueryRepository,
     private postsQueryRepository: PostsQueryRepository,
   ) {}
 

@@ -18,7 +18,11 @@
     "test:cov": "cross-env NODE_ENV=testing jest --coverage",
     "test:debug": "cross-env NODE_ENV=testing node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "cross-env NODE_ENV=testing jest --config ./test/jest-e2e.json",
-    "localhost:run": "ssh -R 80:localhost:3000 nokey@localhost.run"
+    "localhost:run": "ssh -R 80:localhost:3000 nokey@localhost.run",
+
+    "migration:generate": "dotenv -e ./.env.development -- typeorm-ts-node-commonjs migration:generate -d typeorm.config.ts",
+    "migration:run": "dotenv -e ./.env.development -- typeorm-ts-node-commonjs migration:run -d typeorm.config.ts",
+    "migration:revert": "dotenv -e ./.env.development -- typeorm-ts-node-commonjs migration:revert -d typeorm.config.ts"
   },
   "dependencies": {
     "@nestjs-modules/mailer": "^2.0.2",

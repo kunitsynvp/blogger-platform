@@ -1,4 +1,5 @@
 import { Blog } from '../../domain/blog.entity';
+import { BlogDbType } from '../../infrastructure/blogs-query-repository';
 
 export class BlogsViewDto {
   id: string;
@@ -8,7 +9,7 @@ export class BlogsViewDto {
   createdAt: string;
   isMembership: boolean;
 
-  static mapToView(blog: Blog){
+  static mapToView(blog: BlogDbType){
     const viewDto = new BlogsViewDto();
     viewDto.id = blog.id.toString();
     viewDto.name = blog.name;

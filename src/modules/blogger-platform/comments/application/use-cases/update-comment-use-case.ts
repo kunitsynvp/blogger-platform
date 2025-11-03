@@ -2,7 +2,7 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UpdateCommentCommandDto } from '../dto/update-comment-command-dto';
 import { DomainException } from '../../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
-import { CommentsSqlRepository } from '../../infrastructure/comments.sql.repository';
+import { CommentsRepository } from '../../infrastructure/comments.repository';
 
 export class UpdateCommentCommand {
   constructor(public dto: UpdateCommentCommandDto) {}
@@ -12,7 +12,7 @@ export class UpdateCommentUseCase
   implements ICommandHandler<UpdateCommentCommand, void>
 {
   constructor(
-    private commentsRepository: CommentsSqlRepository,
+    private commentsRepository: CommentsRepository,
   ) {}
   async execute(command: UpdateCommentCommand) {
     const foundComment = await this.commentsRepository.findByIdOrFail(
@@ -31,6 +31,6 @@ export class UpdateCommentUseCase
       content: command.dto.content,
     })
 
-    await this.commentsRepository.updateComment(foundComment);
+    await this.commentsRepository.save(foundComment);
   }
 }

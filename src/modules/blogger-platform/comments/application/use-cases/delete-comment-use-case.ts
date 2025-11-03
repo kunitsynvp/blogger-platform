@@ -1,7 +1,7 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { DomainException } from '../../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
-import { CommentsSqlRepository } from '../../infrastructure/comments.sql.repository';
+import { CommentsRepository } from '../../infrastructure/comments.repository';
 
 export class DeleteCommentCommand {
   constructor(
@@ -13,7 +13,7 @@ export class DeleteCommentCommand {
 export class DeleteCommentUseCase
   implements ICommandHandler<DeleteCommentCommand, void>
 {
-  constructor(private commentsRepository: CommentsSqlRepository) {}
+  constructor(private commentsRepository: CommentsRepository) {}
   async execute(command: DeleteCommentCommand) {
     const foundComment = await this.commentsRepository.findByIdOrFail(
       command.commentId,

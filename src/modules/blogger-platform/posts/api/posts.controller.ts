@@ -41,7 +41,7 @@ export class PostsController {
 
   @Get(':postId')
   @UseGuards(JwtOptionalAuthGuard)
-  async getPostById(
+  async getPostById( //TODO do postLikes logic
     @Param('postId', CustomParseIntPipe) postId: number,
     @OptionalCurrentUser() user: UserContextDto,
   ): Promise<PostsViewDto> {
@@ -52,7 +52,7 @@ export class PostsController {
 
   @Get()
   @UseGuards(JwtOptionalAuthGuard)
-  async getPosts(
+  async getPosts(//TODO do postLikes logic
     @Query() query: PostsQueryDto,
     @OptionalCurrentUser() user: UserContextDto,
   ): Promise<PaginatedViewDto<PostsViewDto[]>> {
@@ -62,18 +62,18 @@ export class PostsController {
     >(new GetPostsQuery(query, user?.userId));
   }
 
-  // @Get(':postId/comments')
-  // @UseGuards(JwtOptionalAuthGuard)
-  // async getCommentsForPost(
-  //   @Param('postId', CustomParseIntPipe) postId: number,
-  //   @Query() query: CommentsQueryDto,
-  //   @OptionalCurrentUser() user: UserContextDto,
-  // ): Promise<PaginatedViewDto<CommentsViewDto[]>> {
-  //   return await this.queryBus.execute<
-  //     GetCommentsForPostQuery,
-  //     PaginatedViewDto<CommentsViewDto[]>
-  //   >(new GetCommentsForPostQuery(query, postId, user?.userId));
-  // }
+  @Get(':postId/comments')
+  @UseGuards(JwtOptionalAuthGuard)
+  async getCommentsForPost(
+    @Param('postId', CustomParseIntPipe) postId: number,
+    @Query() query: CommentsQueryDto,
+    @OptionalCurrentUser() user: UserContextDto,
+  ): Promise<PaginatedViewDto<CommentsViewDto[]>> {
+    return await this.queryBus.execute<
+      GetCommentsForPostQuery,
+      PaginatedViewDto<CommentsViewDto[]>
+    >(new GetCommentsForPostQuery(query, postId, user?.userId));
+  }
 
   // @Post()
   // @UseGuards(BasicAuthGuard)
@@ -87,28 +87,28 @@ export class PostsController {
   //   );
   // }
 
-  // @Post(':postId/comments')
-  // @UseGuards(JwtAccessTokenAuthGuard)
-  // @HttpCode(201)
-  // async createCommentForPost(
-  //   @Body() dto: CreateCommentInputDto,
-  //   @Param('postId', CustomParseIntPipe) postId: number,
-  //   @CurrentUser() user: UserContextDto,
-  // ): Promise<CommentsViewDto> {
-  //   const commandDto = CreateCommentCommandDto.createDto(
-  //     postId,
-  //     user.userId,
-  //     dto.content,
-  //   );
-  //   const commentId = await this.commandBus.execute<
-  //     CreateCommentCommand,
-  //     number
-  //   >(new CreateCommentCommand(commandDto));
-  //   return await this.queryBus.execute<
-  //     GetCommentByIdOrFailQuery,
-  //     CommentsViewDto
-  //   >(new GetCommentByIdOrFailQuery(commentId));
-  // }
+  @Post(':postId/comments')
+  @UseGuards(JwtAccessTokenAuthGuard)
+  @HttpCode(201)
+  async createCommentForPost(
+    @Body() dto: CreateCommentInputDto,
+    @Param('postId', CustomParseIntPipe) postId: number,
+    @CurrentUser() user: UserContextDto,
+  ): Promise<CommentsViewDto> {
+    const commandDto = CreateCommentCommandDto.createDto(
+      postId,
+      user.userId,
+      dto.content,
+    );
+    const commentId = await this.commandBus.execute<
+      CreateCommentCommand,
+      number
+    >(new CreateCommentCommand(commandDto));
+    return await this.queryBus.execute<
+      GetCommentByIdOrFailQuery,
+      CommentsViewDto
+    >(new GetCommentByIdOrFailQuery(commentId));
+  }
 
 
 
@@ -124,23 +124,23 @@ export class PostsController {
   //   );
   // }
 
-  // @Put(':postId/like-status')
-  // @UseGuards(JwtAccessTokenAuthGuard)
-  // @HttpCode(204)
-  // async likePost(
-  //   @CurrentUser() user: UserContextDto,
-  //   @Param('postId', CustomParseIntPipe) postId: number,
-  //   @Body() dto: LikeStatusDto,
-  // ): Promise<void> {
-  //   const commandDto = CreatePostLikeCommandDto.createDto(
-  //     postId,
-  //     user.userId,
-  //     dto.likeStatus,
-  //   );
-  //   return await this.commandBus.execute<PostLikeStatusCommand, void>(
-  //     new PostLikeStatusCommand(commandDto),
-  //   );
-  // }
+  @Put(':postId/like-status')
+  @UseGuards(JwtAccessTokenAuthGuard)
+  @HttpCode(204)
+  async likePost(
+    @CurrentUser() user: UserContextDto,
+    @Param('postId', CustomParseIntPipe) postId: number,
+    @Body() dto: LikeStatusDto,
+  ): Promise<void> {
+    const commandDto = CreatePostLikeCommandDto.createDto(
+      postId,
+      user.userId,
+      dto.likeStatus,
+    );
+    return await this.commandBus.execute<PostLikeStatusCommand, void>(
+      new PostLikeStatusCommand(commandDto),
+    );
+  }
 
   // @HttpCode(204)
   // @UseGuards(BasicAuthGuard)
