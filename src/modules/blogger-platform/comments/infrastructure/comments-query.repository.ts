@@ -20,9 +20,10 @@ export class CommentsQueryRepository {
     userId?: number,
   ): Promise<CommentsViewDto> {
 
-    const foundComment = await this.getCommentQueryBuilder(userId)
-      .where('c.id = :commentId', { commentId: commentId })
-      .getRawOne<CommentQueryDbType>()
+    const foundComment = await
+      this.getCommentQueryBuilder(userId)
+          .where('c.id = :commentId', { commentId: commentId })
+          .getRawOne<CommentQueryDbType>()
 
     if (!foundComment) {
       throw new DomainException({
@@ -40,14 +41,10 @@ export class CommentsQueryRepository {
   ): Promise<PaginatedViewDto<CommentsViewDto[]>> {
     const whereOptions: FindOptionsWhere<Comment>[] = [];
     if (postId) {
-      whereOptions.push({
-        postId: postId,
-      })
+      whereOptions.push({ postId: postId })
     }
-
-    this.getCommentQueryBuilder(userId).where(whereOptions)
-
-    const totalCount = await this.getCommentQueryBuilder(userId)
+    const totalCount = await this.comments
+      .createQueryBuilder('c')
       .where(whereOptions)
       .getCount()
 
@@ -69,7 +66,6 @@ export class CommentsQueryRepository {
     return this.comments
       .createQueryBuilder('c')
       .innerJoinAndSelect('c.user','u')
-      .leftJoinAndSelect('c.commentLikes', "cl")
       .select([
       'c.id as id',
       'c.content as content',

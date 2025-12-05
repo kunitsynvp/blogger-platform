@@ -1,10 +1,10 @@
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { UsersTestManager } from './e2e/helpers/test-managers/users-test-manager';
-import { initSettings } from './e2e/helpers/testing-app-init';
-import { deleteAllData } from './e2e/helpers/delete-all-data';
-import { SessionsTestManager } from './e2e/helpers/test-managers/sessions-test-manager';
-import { delay } from './e2e/helpers/delay';
+import { UsersTestManager } from './helpers/test-managers/users-test-manager';
+import { initSettings } from './helpers/testing-app-init';
+import { deleteAllData } from './helpers/delete-all-data';
+import { SessionsTestManager } from './helpers/test-managers/sessions-test-manager';
+import { delay } from './helpers/delay';
 
 describe('Sessions flow (e2e) tests', () => {
   let app: INestApplication;

@@ -36,7 +36,7 @@ export class UsersQueryRepository {
       .orderBy(`"${query.sortBy}"`,`${sortDirection}`)
       .take(query.pageSize)
       .skip(query.calculateSkip())
-      .getRawMany<UsersViewDto>()
+      .getRawMany<UsersQueryDbType>()
 
     const totalCount= await this.users
       .createQueryBuilder('u')
@@ -47,7 +47,7 @@ export class UsersQueryRepository {
       page: query.pageNumber,
       size: query.pageSize,
       totalCount: totalCount,
-      items: items,
+      items: items.map(UsersViewDto.mapToView),
     });
   }
   async findByIdOrFail(id: number): Promise<UsersViewDto> {
@@ -60,7 +60,7 @@ export class UsersQueryRepository {
         'u."createdAt" as "createdAt"'
       ])
       .where('u.id = :userId', { userId: id })
-      .getRawOne<UsersViewDto>()
+      .getRawOne<UsersQueryDbType>()
 
     if (!foundUser) {
       throw new DomainException({
@@ -69,7 +69,7 @@ export class UsersQueryRepository {
         field: 'id',
       });
     }
-    return foundUser
+    return UsersViewDto.mapToView(foundUser)
   }
   async me(id: number): Promise<MeViewDto> {
     const foundUser: MeViewDto | undefined = await this.users
@@ -86,4 +86,10 @@ export class UsersQueryRepository {
     }
     return foundUser;
   }
+}
+export type UsersQueryDbType = {
+  id: number;
+  login: string;
+  email: string;
+  createdAt: Date
 }

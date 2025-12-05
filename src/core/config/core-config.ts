@@ -67,6 +67,23 @@ export class CoreConfig {
   @IsBoolean({message: 'Set env variable DB_IS_SYNCHRONIZE, example: true'})
   dbSynchronize: boolean
 
+  @IsString({message: 'Set env variable MAILER_HOST, example: "smtp.mail.ru"'})
+  mailerHost: string
+
+  @IsNumber({}, {message: 'Set env variable MAILER_HOST, example: 465'})
+  mailerPort: number
+
+  @IsBoolean({message: "Set env variable IS_MAILER_SECURE, example : true"})
+  isMailerSecure: boolean
+
+  @IsString({message: "Set env variable 'MAILER_EMAIL', example: 'kunitsyntest@mail.ru'"})
+  mailerEmail: string
+
+  @IsString({message: "Set env variable 'MAILER_Password', example: 'arHCEsJhGcJmPbYf6qDv'"})
+  mailerPassword: string
+
+  @IsBoolean({message: 'Set env variable IS_MAILER-REJECT-UNAUTHORIZED, example: false'})
+  isMailerRejectUnauthorized: boolean
 
   constructor(private configService: ConfigService<any, true>) {
     this.port = +this.configService.get('PORT');
@@ -90,7 +107,16 @@ export class CoreConfig {
       this.configService.get('DB_IS_AUTO_LOAD_ENTITIES')) as boolean
     this.dbSynchronize = configValidationUtility.convertToBoolean(
       this.configService.get('DB_IS_SYNCHRONIZE')) as boolean
-
+    this.mailerHost = this.configService.get('MAILER_HOST');
+    this.mailerPort = +this.configService.get('MAILER_PORT');
+    this.isMailerSecure = configValidationUtility.convertToBoolean(
+      this.configService.get('IS_MAILER_SECURE')) as boolean;
+    this.mailerEmail = this.configService.get('MAILER_EMAIL');
+    this.mailerPassword = this.configService.get('MAILER_PASSWORD');
+    this.isMailerRejectUnauthorized = configValidationUtility.convertToBoolean(
+      this.configService.get('IS_MAILER-REJECT-UNAUTHORIZED')
+    ) as boolean
+    console.log("mailerHost",this.mailerHost);
     configValidationUtility.validateConfig(this);
   }
 }

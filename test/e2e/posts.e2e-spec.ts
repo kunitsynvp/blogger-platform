@@ -1,11 +1,11 @@
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { UsersTestManager } from './e2e/helpers/test-managers/users-test-manager';
-import { initSettings } from './e2e/helpers/testing-app-init';
-import { deleteAllData } from './e2e/helpers/delete-all-data';
-import { PostsTestManager } from './e2e/helpers/test-managers/posts-test-manager';
-import { LikeStatus } from '../src/modules/blogger-platform/comments/domain/enums/like-status-enum';
-import { BlogsTestManager } from './e2e/helpers/test-managers/blogs-test-manager';
+import { UsersTestManager } from './helpers/test-managers/users-test-manager';
+import { initSettings } from './helpers/testing-app-init';
+import { deleteAllData } from './helpers/delete-all-data';
+import { PostsTestManager } from './helpers/test-managers/posts-test-manager';
+import { LikeStatus } from '../../src/modules/blogger-platform/comments/domain/enums/like-status-enum';
+import { BlogsTestManager } from './helpers/test-managers/blogs-test-manager';
 
 describe('Post flow (e2e) tests', () => {
   const basicAuthString: string = "Basic YWRtaW46cXdlcnR5"

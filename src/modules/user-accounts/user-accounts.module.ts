@@ -42,8 +42,6 @@ import { PasswordRecovery } from './domain/user/password-recovery.entity';
 import { User } from './domain/user/user.entity';
 import { PasswordRecoveryRepository } from './infrastructure/password-recovery-repository';
 import { EmailConfirmationRepository } from './infrastructure/email-confirmation-repository';
-import { Blog } from '../blogger-platform/blogs/domain/blog.entity';
-import { Post } from '../blogger-platform/posts/domain/post.entity';
 
 const useCases = [
   //auth
@@ -70,7 +68,12 @@ const queryHandlers = [
 ];
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, EmailConfirmation, PasswordRecovery, Session]),
+    TypeOrmModule.forFeature([
+      User,
+      EmailConfirmation,
+      PasswordRecovery,
+      Session,
+    ]),
     NotificationsModule,
     JwtModule,
   ],
@@ -105,7 +108,6 @@ const queryHandlers = [
     CryptoService,
     RandomService,
     UsersExternalSqlRepository,
-    //UsersExternalQueryRepository,//TODO DO SQL LOGIC FOR THIS QUERY REPO IF NEEDED
     SessionsService,
     UsersRepository,
     PasswordRecoveryRepository,
@@ -113,10 +115,6 @@ const queryHandlers = [
     SessionsSqlQueryRepository,
     SessionsRepository,
   ],
-  exports: [
-    UsersExternalSqlRepository,
-    //UsersExternalQueryRepository,
-    UserAccountsConfig,
-  ],
+  exports: [UsersExternalSqlRepository, UserAccountsConfig],
 })
 export class UserAccountsModule {}

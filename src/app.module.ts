@@ -16,6 +16,7 @@ import { CoreConfig } from './core/config/core-config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule, TypeOrmModuleAsyncOptions } from '@nestjs/typeorm';
 import { typeORMNamingStrategy } from './core/config/camel-case-naming-strategy';
+import { QuizModule } from './modules/quiz/quiz.module';
 
 @Module({
   imports: [
@@ -53,29 +54,34 @@ import { typeORMNamingStrategy } from './core/config/camel-case-naming-strategy'
       },
       inject: [CoreConfig]
     }),
-    MailerModule.forRoot({
-      transport: {
-        host: "smtp.mail.ru",
-        port: 465,
-        secure: true, // true for 465, false for other ports
-        auth: {
-          user: "kunitsyntest@mail.ru",
-          pass: "arHCEsJhGcJmPbYf6qDv",
-        },
-        tls: {
-          rejectUnauthorized: false,
-        },
-      }
+    MailerModule.forRootAsync({
+      useFactory(coreConfig: CoreConfig) {
+        return {
+          transport:{
+            host: coreConfig.mailerHost,
+            port: coreConfig.mailerPort,
+            secure: coreConfig.isMailerSecure,
+            auth: {
+              user: coreConfig.mailerEmail,
+              pass: coreConfig.mailerPassword,
+            },
+            tls: {
+              rejectUnauthorized: coreConfig.isMailerRejectUnauthorized
+            }
+          }
+        }
+      },
+      inject: [CoreConfig]
     }),
     UserAccountsModule,
     BloggerPlatformModule,
     TestingModule,
-    NotificationsModule
+    NotificationsModule,
+    QuizModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
-
     {
       provide: APP_FILTER,
       useClass: AllHttpExceptionsFilter,
