@@ -28,19 +28,18 @@ export class PostsTestManager {
   async createPostInDb(): Promise<Post> {
     const createdBlog = await this.blogsTestManager.createBlogInDb();
     const createdPost = await request(this.app.getHttpServer())
-      .post(this.postPostPath)
+      .post(`/sa/blogs/${createdBlog.id}/posts`)
       .set('Authorization', this.BasicAuthString)
       .send({
         title: this.defaults.title,
         shortDescription: this.defaults.shortDescription,
         content: this.defaults.content,
-        blogId: createdBlog.id,
       });
     return this.postsRepository.findPostByIdOrFail(createdPost.body.id);
   }
   async createPostInDbWIthBlog(blogId: number): Promise<Post> {
     const createdPost = await request(this.app.getHttpServer())
-      .post(this.postPostPath)
+      .post(`/sa/blogs/${blogId}/posts`)
       .set('Authorization', this.BasicAuthString)
       .send({
         title: this.defaults.title,
@@ -57,13 +56,12 @@ export class PostsTestManager {
     const posts = [] as Post[];
     for (let i = 0; i < count; i++) {
       const createdPost = await request(this.app.getHttpServer())
-        .post(this.postPostPath)
+        .post(`/sa/blogs/${createdBlog.id}/posts`)
         .set('Authorization', this.BasicAuthString)
         .send({
           title: this.defaults.title,
           shortDescription: this.defaults.shortDescription,
           content: this.defaults.content,
-          blogId: createdBlog.id,
         });
       const post = await this.postsRepository.findPostByIdOrFail(
         createdPost.body.id,
@@ -94,7 +92,7 @@ export class PostsTestManager {
   async createLikeStatusesByUsers(
     usersAccessTokens: string[],
     statusToCreate: LikeStatus,
-    postId: string,
+    postId: number,
   ): Promise<void> {
     for (const userAccessToken of usersAccessTokens) {
       await request(this.app.getHttpServer())

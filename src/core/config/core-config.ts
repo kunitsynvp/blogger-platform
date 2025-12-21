@@ -85,6 +85,9 @@ export class CoreConfig {
   @IsBoolean({message: 'Set env variable IS_MAILER-REJECT-UNAUTHORIZED, example: false'})
   isMailerRejectUnauthorized: boolean
 
+  @IsBoolean({message: 'Set env variable IS_LOGGING_ON, example: true'})
+  isLoggingOn: boolean
+
   constructor(private configService: ConfigService<any, true>) {
     this.port = +this.configService.get('PORT');
     this.mongodb_URI = this.configService.get('MONGODB_URI');
@@ -116,7 +119,10 @@ export class CoreConfig {
     this.isMailerRejectUnauthorized = configValidationUtility.convertToBoolean(
       this.configService.get('IS_MAILER-REJECT-UNAUTHORIZED')
     ) as boolean
-    console.log("mailerHost",this.mailerHost);
+    this.isLoggingOn = configValidationUtility.convertToBoolean(
+      this.configService.get('IS_LOGGING_ON')
+    ) as boolean
+
     configValidationUtility.validateConfig(this);
   }
 }

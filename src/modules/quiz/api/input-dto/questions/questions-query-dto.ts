@@ -1,7 +1,7 @@
 import {
   BaseQueryPagination,
   SortDirection,
-} from '../../../../core/dto/base-query-pagination';
+} from '../../../../../core/dto/base-query-pagination';
 import { IsEnum, IsOptional, IsString } from 'class-validator';
 import { QuestionsSortBy } from './questions-sortBy';
 import { QuestionsPublishedStatuses } from './questions-published-statuses';
@@ -15,7 +15,7 @@ export class QuestionsQueryDto extends BaseQueryPagination {
   bodySearchTerm: string | null = null;
 
   @IsEnum(QuestionsPublishedStatuses)
-  publishedStatus = QuestionsPublishedStatuses.all;
+  publishedStatus:QuestionsPublishedStatuses = QuestionsPublishedStatuses.all;
 
   @IsEnum(SortDirection)
   sortDirection: SortDirection = SortDirection.Desc;

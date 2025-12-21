@@ -1,7 +1,7 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { CreateQuestionInputDto } from '../../api/input-dto/create-question-input-dto';
+import { CreateQuestionInputDto } from '../../api/input-dto/questions/create-question-input-dto';
 import { Question } from '../../domain/questions/question.entity';
-import { QuestionsRepository } from '../../infrastructure/questions.repository';
+import { QuestionsRepository } from '../../infrastructure/questions/questions.repository';
 
 export class CreateQuestionCommand {
   constructor(public dto: CreateQuestionInputDto) {}

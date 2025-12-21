@@ -10,6 +10,3 @@ export const configModule = ConfigModule.forRoot({
   ],
   isGlobal: true,
 });
-console.log(process.env.NODE_ENV);
-console.log("mongo uri: ", process.env.MONGODB_URI);
-console.log('port: ', process.env.PORT);

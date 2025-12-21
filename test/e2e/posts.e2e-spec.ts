@@ -64,11 +64,11 @@ describe('Post flow (e2e) tests', () => {
       const {accessToken} = await userTestManger.loginUser(defaults.login, defaults.password)
 
       const res = await request(app.getHttpServer())
-        .put(`/posts/${post._id.toString()}/like-status`)
+        .put(`/posts/${post.id}/like-status`)
         .set('Authorization', `Bearer ${accessToken}`)
         .send({likeStatus: "Like"})
         .expect(204)
-      const postWithLike = await postsTestManager.getPostViewById(post._id.toString(), accessToken);
+      const postWithLike = await postsTestManager.getPostViewById(post.id, accessToken);
       expect(postWithLike).not.toBeUndefined()
       expect(postWithLike.extendedLikesInfo.likesCount).toBe(1)
       expect(postWithLike.extendedLikesInfo.dislikesCount).toBe(0)
@@ -77,7 +77,7 @@ describe('Post flow (e2e) tests', () => {
         {
           addedAt: expect.any(String),
           login: createdUser.login,
-          userId: createdUser._id.toString(),
+          userId: createdUser.id.toString(),
 
         }
       ])
@@ -92,12 +92,12 @@ describe('Post flow (e2e) tests', () => {
       const {accessToken} = await userTestManger.loginUser(defaults.login, defaults.password)
       const invalidLikeStatus = "dizlike"
       const res = await request(app.getHttpServer())
-        .put(`/posts/${post._id.toString()}/like-status`)
+        .put(`/posts/${post.id}/like-status`)
         .set('Authorization', `Bearer ${accessToken}`)
         .send({likeStatus: invalidLikeStatus})
         .expect(400)
       expect(res.body.errorsMessages[0].field).toBe('likeStatus')
-      const postWithLike = await postsTestManager.getPostViewById(post._id.toString(), accessToken);
+      const postWithLike = await postsTestManager.getPostViewById(post.id, accessToken);
       expect(postWithLike).not.toBeUndefined()
       expect(postWithLike.extendedLikesInfo.likesCount).toBe(0)
       expect(postWithLike.extendedLikesInfo.dislikesCount).toBe(0)
@@ -114,19 +114,19 @@ describe('Post flow (e2e) tests', () => {
       const {accessToken} = await userTestManger.loginUser(defaults.login, defaults.password)
       const invalidToke = "invalidToken"
       const res = await request(app.getHttpServer())
-        .put(`/posts/${post._id.toString()}/like-status`)
+        .put(`/posts/${post.id}/like-status`)
         .set('Authorization', `Bearer ${invalidToke}`)
         .send({likeStatus: LikeStatus.Like})
         .expect(401)
       expect(res.body.errorsMessages[0].field).toBe('None')
-      const postWithLike = await postsTestManager.getPostViewById(post._id.toString(), accessToken);
+      const postWithLike = await postsTestManager.getPostViewById(post.id, accessToken);
       expect(postWithLike).not.toBeUndefined()
       expect(postWithLike.extendedLikesInfo.likesCount).toBe(0)
       expect(postWithLike.extendedLikesInfo.dislikesCount).toBe(0)
       expect(postWithLike.extendedLikesInfo.myStatus).toBe(LikeStatus.None)
       expect(postWithLike.extendedLikesInfo.newestLikes).toEqual([])
     })
-    it("(400) ❌ Shouldn`t create like for post with invalid postId", async () => {
+    it("(404) ❌ Shouldn`t create like for post with invalid postId", async () => {
       const post = await postsTestManager.createPostInDb()
       const createdUser = await userTestManger.createUserByRegistration(
         defaults.login,
@@ -139,9 +139,9 @@ describe('Post flow (e2e) tests', () => {
         .put(`/posts/${invalidPostId}/like-status`)
         .set('Authorization', `Bearer ${accessToken}`)
         .send({likeStatus: LikeStatus.Like})
-        .expect(400)
+        .expect(404)
       expect(res.body.errorsMessages[0].field).toBe('id')
-      const postWithLike = await postsTestManager.getPostViewById(post._id.toString(), accessToken);
+      const postWithLike = await postsTestManager.getPostViewById(post.id, accessToken);
       expect(postWithLike).not.toBeUndefined()
       expect(postWithLike.extendedLikesInfo.likesCount).toBe(0)
       expect(postWithLike.extendedLikesInfo.dislikesCount).toBe(0)
@@ -164,7 +164,7 @@ describe('Post flow (e2e) tests', () => {
         .send({likeStatus: LikeStatus.Like})
         .expect(404)
       expect(res.body.errorsMessages[0].field).toBe('id')
-      const postWithLike = await postsTestManager.getPostViewById(post._id.toString(), accessToken);
+      const postWithLike = await postsTestManager.getPostViewById(post.id, accessToken);
       expect(postWithLike).not.toBeUndefined()
       expect(postWithLike.extendedLikesInfo.likesCount).toBe(0)
       expect(postWithLike.extendedLikesInfo.dislikesCount).toBe(0)
@@ -182,11 +182,11 @@ describe('Post flow (e2e) tests', () => {
       const {accessToken} = await userTestManger.loginUser(defaults.login, defaults.password)
 
       const res = await request(app.getHttpServer())
-        .put(`/posts/${post._id.toString()}/like-status`)
+        .put(`/posts/${post.id}/like-status`)
         .set('Authorization', `Bearer ${accessToken}`)
         .send({likeStatus: "Like"})
         .expect(204)
-      const postWithLike1 = await postsTestManager.getPostViewById(post._id.toString(), accessToken);
+      const postWithLike1 = await postsTestManager.getPostViewById(post.id, accessToken);
       expect(postWithLike1).not.toBeUndefined()
       expect(postWithLike1.extendedLikesInfo.likesCount).toBe(1)
       expect(postWithLike1.extendedLikesInfo.dislikesCount).toBe(0)
@@ -195,15 +195,15 @@ describe('Post flow (e2e) tests', () => {
         {
           addedAt: expect.any(String),
           login: createdUser.login,
-          userId: createdUser._id.toString(),
+          userId: createdUser.id.toString(),
 
         }])
       const res2 = await request(app.getHttpServer())
-        .put(`/posts/${post._id.toString()}/like-status`)
+        .put(`/posts/${post.id}/like-status`)
         .set('Authorization', `Bearer ${accessToken}`)
         .send({likeStatus: "Like"})
         .expect(204)
-      const postWithLike2 = await postsTestManager.getPostViewById(post._id.toString(), accessToken);
+      const postWithLike2 = await postsTestManager.getPostViewById(post.id, accessToken);
       expect(postWithLike2).not.toBeUndefined()
       expect(postWithLike2.extendedLikesInfo.likesCount).toBe(1)
       expect(postWithLike2.extendedLikesInfo.dislikesCount).toBe(0)
@@ -212,7 +212,7 @@ describe('Post flow (e2e) tests', () => {
         {
           addedAt: expect.any(String),
           login: createdUser.login,
-          userId: createdUser._id.toString(),
+          userId: createdUser.id.toString(),
 
         }])
     })
@@ -226,11 +226,11 @@ describe('Post flow (e2e) tests', () => {
       const {accessToken} = await userTestManger.loginUser(defaults.login, defaults.password)
 
       const res = await request(app.getHttpServer())
-        .put(`/posts/${post._id.toString()}/like-status`)
+        .put(`/posts/${post.id}/like-status`)
         .set('Authorization', `Bearer ${accessToken}`)
         .send({likeStatus: "Like"})
         .expect(204)
-      const postWithLike1 = await postsTestManager.getPostViewById(post._id.toString(), accessToken);
+      const postWithLike1 = await postsTestManager.getPostViewById(post.id, accessToken);
       expect(postWithLike1).not.toBeUndefined()
       expect(postWithLike1.extendedLikesInfo.likesCount).toBe(1)
       expect(postWithLike1.extendedLikesInfo.dislikesCount).toBe(0)
@@ -239,15 +239,15 @@ describe('Post flow (e2e) tests', () => {
         {
           addedAt: expect.any(String),
           login: createdUser.login,
-          userId: createdUser._id.toString(),
+          userId: createdUser.id.toString(),
 
         }])
       const res2 = await request(app.getHttpServer())
-        .put(`/posts/${post._id.toString()}/like-status`)
+        .put(`/posts/${post.id}/like-status`)
         .set('Authorization', `Bearer ${accessToken}`)
         .send({likeStatus: "Dislike"})
         .expect(204)
-      const postWithLike2 = await postsTestManager.getPostViewById(post._id.toString(), accessToken);
+      const postWithLike2 = await postsTestManager.getPostViewById(post.id, accessToken);
       expect(postWithLike2).not.toBeUndefined()
       expect(postWithLike2.extendedLikesInfo.likesCount).toBe(0)
       expect(postWithLike2.extendedLikesInfo.dislikesCount).toBe(1)
@@ -272,9 +272,9 @@ describe('Post flow (e2e) tests', () => {
       const {users, accessTokens} = await userTestManger.createUsersBySAAndLogin(4);
 
 
-      await postsTestManager.createLikeStatusesByUsers(accessTokens,LikeStatus.Like, post._id.toString())
+      await postsTestManager.createLikeStatusesByUsers(accessTokens,LikeStatus.Like, post.id)
 
-      const postWithLikeByUser1 = await postsTestManager.getPostViewById(post._id.toString(), accessTokens[0]);
+      const postWithLikeByUser1 = await postsTestManager.getPostViewById(post.id, accessTokens[0]);
       expect(postWithLikeByUser1).not.toBeUndefined()
       expect(postWithLikeByUser1.extendedLikesInfo.likesCount).toBe(4)
       expect(postWithLikeByUser1.extendedLikesInfo.dislikesCount).toBe(0)
@@ -304,10 +304,10 @@ describe('Post flow (e2e) tests', () => {
       const {users, accessTokens} = await userTestManger.createUsersBySAAndLogin(4);
 
 
-      await postsTestManager.createLikeStatusesByUsers(accessTokens.slice(0,4),LikeStatus.Like, post._id.toString())
-      await postsTestManager.createLikeStatusesByUsers(accessTokens.slice(3),LikeStatus.Dislike, post._id.toString())
+      await postsTestManager.createLikeStatusesByUsers(accessTokens.slice(0,4),LikeStatus.Like, post.id)
+      await postsTestManager.createLikeStatusesByUsers(accessTokens.slice(3),LikeStatus.Dislike, post.id)
 
-      const postWithLikeByUser4 = await postsTestManager.getPostViewById(post._id.toString(), accessTokens[3]);
+      const postWithLikeByUser4 = await postsTestManager.getPostViewById(post.id, accessTokens[3]);
       expect(postWithLikeByUser4).not.toBeUndefined()
       expect(postWithLikeByUser4.extendedLikesInfo.likesCount).toBe(3)
       expect(postWithLikeByUser4.extendedLikesInfo.dislikesCount).toBe(1)
@@ -349,77 +349,77 @@ describe('Post flow (e2e) tests', () => {
         await postsTestManager.createLikeStatusesByUsers(
           accessTokens.slice(0, 1),
           LikeStatus.Like,
-          posts[0]._id.toString(),
+          posts[0].id,
         );
         await postsTestManager.createLikeStatusesByUsers(
           accessTokens.slice(1, 2),
           LikeStatus.Like,
-          posts[0]._id.toString(),
+          posts[0].id,
         );
 
         //like post2 by user2,user3
         await postsTestManager.createLikeStatusesByUsers(
           accessTokens.slice(1, 2),
           LikeStatus.Like,
-          posts[1]._id.toString(),
+          posts[1].id,
         );
         await postsTestManager.createLikeStatusesByUsers(
           accessTokens.slice(2, 3),
           LikeStatus.Like,
-          posts[1]._id.toString(),
+          posts[1].id,
         );
 
         //dislike post3 by user1
         await postsTestManager.createLikeStatusesByUsers(
           accessTokens.slice(0, 1),
           LikeStatus.Dislike,
-          posts[2]._id.toString(),
+          posts[2].id,
         );
 
         //like post 4 by user 1, user 4, user 2, user 3
         await postsTestManager.createLikeStatusesByUsers(
           accessTokens.slice(0, 1),
           LikeStatus.Like,
-          posts[3]._id.toString(),
+          posts[3].id,
         );
         await postsTestManager.createLikeStatusesByUsers(
           accessTokens.slice(3, 4),
           LikeStatus.Like,
-          posts[3]._id.toString(),
+          posts[3].id,
         );
         await postsTestManager.createLikeStatusesByUsers(
           accessTokens.slice(1, 2),
           LikeStatus.Like,
-          posts[3]._id.toString(),
+          posts[3].id,
         );
         await postsTestManager.createLikeStatusesByUsers(
           accessTokens.slice(2, 3),
           LikeStatus.Like,
-          posts[3]._id.toString(),
+          posts[3].id,
         );
 
         //like post 5 by user 2, dislike by user 3
         await postsTestManager.createLikeStatusesByUsers(
           accessTokens.slice(1, 2),
           LikeStatus.Like,
-          posts[4]._id.toString(),
+          posts[4].id,
         );
         await postsTestManager.createLikeStatusesByUsers(
           accessTokens.slice(2, 3),
           LikeStatus.Dislike,
-          posts[4]._id.toString(),
+          posts[4].id,
         );
 
         //like post 6 by user 1, dislike by user 2
         await postsTestManager.createLikeStatusesByUsers(
           accessTokens.slice(0, 1),
           LikeStatus.Like,
-          posts[5]._id.toString(),
+          posts[5].id,
         );
         await postsTestManager.createLikeStatusesByUsers(
           accessTokens.slice(1, 2),
           LikeStatus.Dislike,
-          posts[5]._id.toString(),
+          posts[5].id,
         );
 
         const foundPosts = await request(app.getHttpServer())
@@ -507,7 +507,7 @@ describe('Post flow (e2e) tests', () => {
     })
     it("(404) ❌ Shouldn`t create post for deleted blog", async () => {
       const createdBlog = await blogsTestManager.createBlogInDb(defaults.name,defaults.description,defaults.websiteUrl)
-      await blogsTestManager.deleteBlogById(createdBlog.id)
+      await blogsTestManager.deleteBlogById(+createdBlog.id)
       const res = await request(app.getHttpServer())
         .post(`/posts`)
         .set('Authorization', basicAuthString)
@@ -542,10 +542,10 @@ describe('Post flow (e2e) tests', () => {
 
     it('(204) ✅ Should update post', async () => {
       const createdBlog = await blogsTestManager.createBlogInDb(defaults.name,defaults.description,defaults.websiteUrl)
-      const createdPost = await postsTestManager.createPostInDbWIthBlog(createdBlog.id)
+      const createdPost = await postsTestManager.createPostInDbWIthBlog(+createdBlog.id)
 
       const res = await request(app.getHttpServer())
-        .put(`/posts/${createdPost._id.toString()}`)
+        .put(`/posts/${createdPost.id}`)
         .set('Authorization', basicAuthString)
         .send({
           title: defaults.title,
@@ -557,21 +557,21 @@ describe('Post flow (e2e) tests', () => {
     });
     it("(400) ❌ Shouldn`t update post with empty input", async () => {
       const createdBlog = await blogsTestManager.createBlogInDb(defaults.name,defaults.description,defaults.websiteUrl)
-      const createdPost = await postsTestManager.createPostInDbWIthBlog(createdBlog.id)
+      const createdPost = await postsTestManager.createPostInDbWIthBlog(+createdBlog.id)
 
       const res = await request(app.getHttpServer())
-        .put(`/posts/${createdPost._id.toString()}`)
+        .put(`/posts/${createdPost.id}`)
         .set('Authorization', basicAuthString)
         .send({})
         .expect(400)
     })
     it("(400) ❌ Shouldn`t update post with invalid input data(incorrect title)", async () => {
       const createdBlog = await blogsTestManager.createBlogInDb(defaults.name,defaults.description,defaults.websiteUrl)
-      const createdPost = await postsTestManager.createPostInDbWIthBlog(createdBlog.id)
+      const createdPost = await postsTestManager.createPostInDbWIthBlog(+createdBlog.id)
 
       const invalidTitle = 4
       const res = await request(app.getHttpServer())
-        .put(`/posts/${createdPost._id.toString()}`)
+        .put(`/posts/${createdPost.id}`)
         .set('Authorization', basicAuthString)
         .send({
           title: invalidTitle,
@@ -604,10 +604,10 @@ describe('Post flow (e2e) tests', () => {
 
     it('(204) ✅ Should delete post', async () => {
       const createdBlog = await blogsTestManager.createBlogInDb(defaults.name,defaults.description,defaults.websiteUrl)
-      const createdPost = await postsTestManager.createPostInDbWIthBlog(createdBlog.id)
+      const createdPost = await postsTestManager.createPostInDbWIthBlog(+createdBlog.id)
 
       const res = await request(app.getHttpServer())
-        .delete(`/posts/${createdPost._id.toString()}`)
+        .delete(`/posts/${createdPost.id}`)
         .set('Authorization', basicAuthString)
         .send({
           title: defaults.title,
@@ -619,7 +619,7 @@ describe('Post flow (e2e) tests', () => {
     });
     it("(404) ❌ Shouldn`t delete post with another postId", async () => {
       const createdBlog = await blogsTestManager.createBlogInDb(defaults.name,defaults.description,defaults.websiteUrl)
-      const createdPost = await postsTestManager.createPostInDbWIthBlog(createdBlog.id)
+      const createdPost = await postsTestManager.createPostInDbWIthBlog(+createdBlog.id)
 
       const res = await request(app.getHttpServer())
         .delete(`/posts/${createdBlog.id}`)
@@ -628,17 +628,17 @@ describe('Post flow (e2e) tests', () => {
     })
     it("(401) ❌ Shouldn`t delete post with invalid authorization", async () => {
       const createdBlog = await blogsTestManager.createBlogInDb(defaults.name,defaults.description,defaults.websiteUrl)
-      const createdPost = await postsTestManager.createPostInDbWIthBlog(createdBlog.id)
+      const createdPost = await postsTestManager.createPostInDbWIthBlog(+createdBlog.id)
 
       const invalidAuthString = "invalid"
       const res = await request(app.getHttpServer())
-        .delete(`/posts/${createdPost._id.toString()}`)
+        .delete(`/posts/${createdPost.id}`)
         .set('Authorization', invalidAuthString)
         .expect(401)
     })
     it("(400) ❌ Shouldn`t delete post with invalid uri", async () => {
       const createdBlog = await blogsTestManager.createBlogInDb(defaults.name,defaults.description,defaults.websiteUrl)
-      const createdPost = await postsTestManager.createPostInDbWIthBlog(createdBlog.id)
+      const createdPost = await postsTestManager.createPostInDbWIthBlog(+createdBlog.id)
 
       const invalidUri = "invalid"
       const res = await request(app.getHttpServer())

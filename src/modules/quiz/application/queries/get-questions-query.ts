@@ -1,6 +1,6 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-import { QuestionsQueryDto } from '../../api/input-dto/questions-query-dto';
-import { QuestionsQueryRepository } from '../../infrastructure/questions.query.repository';
+import { QuestionsQueryDto } from '../../api/input-dto/questions/questions-query-dto';
+import { QuestionsQueryRepository } from '../../infrastructure/questions/questions.query.repository';
 import { PaginatedViewDto } from '../../../../core/dto/base.paginated.view-dto';
 import { QuestionViewDto } from '../../api/view-dto/question-view-dto';
 

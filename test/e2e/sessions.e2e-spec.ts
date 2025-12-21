@@ -334,16 +334,17 @@ describe('Sessions flow (e2e) tests', () => {
         defaults.login,
         defaults.password,
       );
+      console.log("refreshToken ", refreshToken);
       await userTestManger.deleteUserById(createdUser1.id);
       const res = await request(app.getHttpServer())
-        .delete(`/security/devices/`)
+        .delete(`/security/devices`)
         .set('Cookie', `refreshToken=${refreshToken}`)
         .expect(401);
       const foundSessionAfterDelete =
         await sessionTestManager.getSessionByUserId(
           createdUser1.id,
         );
-      expect(foundSessionAfterDelete.length).toBe(1);
+      expect(foundSessionAfterDelete.length).toBe(0);
     });
   });
 
@@ -407,7 +408,7 @@ describe('Sessions flow (e2e) tests', () => {
         .get('/security/devices')
         .set('Cookie', [`refreshToken=${updatedRefreshTokenFor1Session}`])
         .expect(200);
-      console.log("get sessions Response: ",getSessionsResponse.body);
+      console.log("get sessions AFTER update refresh token: ",getSessionsResponse.body);
       const decodedSession1RefreshToken =
         await userTestManger.decodeRefreshToken(sessionsResult.rTokenArray[0]);
       console.log("decoded rToken 1: ",decodedSession1RefreshToken);
@@ -428,31 +429,31 @@ describe('Sessions flow (e2e) tests', () => {
 
       expect(getSessionsResponse.body.length).toBe(4);
       expect(getSessionsResponse.body[0].deviceId).toBe(
-        decodedSession1RefreshToken.deviceId,
-      );
-      expect(getSessionsResponse.body[0].lastActiveDate).not.toBe(
-        decodedSession1RefreshToken.iat.toISOString(),
-      );
-
-      expect(getSessionsResponse.body[1].deviceId).toBe(
         decodedSession2RefreshToken.deviceId,
       );
-      expect(getSessionsResponse.body[1].lastActiveDate).toBe(
+      expect(getSessionsResponse.body[0].lastActiveDate).toBe(
         decodedSession2RefreshToken.iat.toISOString(),
       );
 
-      expect(getSessionsResponse.body[2].deviceId).toBe(
+      expect(getSessionsResponse.body[1].deviceId).toBe(
         decodedSession3RefreshToken.deviceId,
       );
-      expect(getSessionsResponse.body[2].lastActiveDate).toBe(
+      expect(getSessionsResponse.body[1].lastActiveDate).toBe(
         decodedSession3RefreshToken.iat.toISOString(),
       );
 
-      expect(getSessionsResponse.body[3].deviceId).toBe(
+      expect(getSessionsResponse.body[2].deviceId).toBe(
         decodedSession4RefreshToken.deviceId,
       );
-      expect(getSessionsResponse.body[3].lastActiveDate).toBe(
+      expect(getSessionsResponse.body[2].lastActiveDate).toBe(
         decodedSession4RefreshToken.iat.toISOString(),
+      );
+
+      expect(getSessionsResponse.body[3].deviceId).toBe(
+        decodedSession1RefreshToken.deviceId,
+      );
+      expect(getSessionsResponse.body[3].lastActiveDate).not.toBe(
+        decodedSession1RefreshToken.iat.toISOString(),
       );
 
       const deletedSession2Result = await request(app.getHttpServer())
@@ -465,7 +466,7 @@ describe('Sessions flow (e2e) tests', () => {
         .expect(200);
       expect(get3SessionsResponse.body.length).toBe(3);
       expect(get3SessionsResponse.body).not.toContainEqual(
-        getSessionsResponse.body[1],
+        getSessionsResponse.body[0],
       );
 
       const loggedOutSession3Result = await request(app.getHttpServer())
@@ -478,7 +479,7 @@ describe('Sessions flow (e2e) tests', () => {
         .expect(200);
       expect(get2SessionResponse.body.length).toBe(2);
       expect(get2SessionResponse.body).not.toContainEqual(
-        getSessionsResponse.body[2],
+        getSessionsResponse.body[1],
       );
 
       const deletedAllSessionExclude1stResult = await request(
@@ -494,7 +495,7 @@ describe('Sessions flow (e2e) tests', () => {
         .expect(200);
       expect(get1SessionResponse.body.length).toBe(1);
       expect(get1SessionResponse.body).not.toContainEqual(
-        getSessionsResponse.body[3],
+        getSessionsResponse.body[2],
       );
     },20000);
   });

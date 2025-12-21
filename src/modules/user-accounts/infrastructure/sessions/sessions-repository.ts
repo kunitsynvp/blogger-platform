@@ -54,10 +54,8 @@ export class SessionsRepository {
     exp: string,
   ): Promise<void> {
     const parsedIat = new Date(+iat * 1000);
-    // const foundResult: UserDbType[] = await this.dataSource.query(
-    //   `SELECT * FROM "Sessions" WHERE "deviceId" = $1 AND iat = $2`,
-    //   [deviceId, parsedIat],
-    // );
+
+
     const foundResult = await this.sessions.findOne({
       where: {
         deviceId: deviceId,
@@ -79,7 +77,7 @@ export class SessionsRepository {
       throw new DomainException({
         code: DomainExceptionCode.Unauthorized,
         message: 'Unauthorized',
-        field: 'its not refresh token',
+        field: 'its not a refresh token',
       });
     }
   }

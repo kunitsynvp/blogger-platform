@@ -1,12 +1,13 @@
 import { InjectRepository } from '@nestjs/typeorm';
-import { Question } from '../domain/questions/question.entity';
-import { FindOptionsWhere, Repository } from 'typeorm';
+import { Question } from '../../domain/questions/question.entity';
+import { FindOptionsWhere, ILike, Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
-import { DomainException } from '../../../core/exceptions/domain-exceptions';
-import { DomainExceptionCode } from '../../../core/exceptions/domain-exception-codes';
-import { QuestionViewDto } from '../api/view-dto/question-view-dto';
-import { QuestionsQueryDto } from '../api/input-dto/questions-query-dto';
-import { PaginatedViewDto } from '../../../core/dto/base.paginated.view-dto';
+import { DomainException } from '../../../../core/exceptions/domain-exceptions';
+import { DomainExceptionCode } from '../../../../core/exceptions/domain-exception-codes';
+import { QuestionViewDto } from '../../api/view-dto/question-view-dto';
+import { QuestionsQueryDto } from '../../api/input-dto/questions/questions-query-dto';
+import { PaginatedViewDto } from '../../../../core/dto/base.paginated.view-dto';
+import { QuestionsPublishedStatuses } from '../../api/input-dto/questions/questions-published-statuses';
 
 @Injectable()
 export class QuestionsQueryRepository {
@@ -40,7 +41,14 @@ export class QuestionsQueryRepository {
   async findQuestions(query: QuestionsQueryDto) {
     const whereOptions: FindOptionsWhere<Question>[] = [];
     if (query.bodySearchTerm) {
-      whereOptions.push({ body: query.bodySearchTerm });
+      whereOptions.push({ body: ILike(`%${query.bodySearchTerm}%`) });
+    }
+    switch (query.publishedStatus){
+      case QuestionsPublishedStatuses.published:
+        whereOptions.push({ isPublished: true })
+        break;
+      case QuestionsPublishedStatuses.notPublished:
+        whereOptions.push({ isPublished: false })
     }
     const items = await this.questions
       .createQueryBuilder('q')

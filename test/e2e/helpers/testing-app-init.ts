@@ -1,9 +1,6 @@
-import { Connection } from 'mongoose';
 import { Test, TestingModuleBuilder } from '@nestjs/testing';
 import { EmailService } from '../../../src/modules/notifications/application/email.service';
-import { getConnectionToken } from '@nestjs/mongoose';
 import { appSetup } from '../../../src/setup/app.setup';
-import { deleteAllData } from './delete-all-data';
 import { UsersTestManager } from './test-managers/users-test-manager';
 import { MockedEmailService } from '../../mock/email-service-mock';
 import { CommentsTestManager } from './test-managers/comments-test-manager';
@@ -12,6 +9,8 @@ import { BlogsTestManager } from './test-managers/blogs-test-manager';
 import { initAppModule } from '../../../src/init-app-module';
 import { SessionsTestManager } from './test-managers/sessions-test-manager';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { QuestionsTestManager } from './test-managers/questions-test-manager';
+import { GamesTestManager } from './test-managers/games-test-manager';
 
 export const initSettings = async (
   //передаем callback, который получает ModuleBuilder, если хотим изменить настройку тестового модуля
@@ -36,24 +35,28 @@ export const initSettings = async (
 
   await app.init();
 
-  const databaseConnection = app.get<Connection>(getConnectionToken());
+  //const databaseConnection = app.get<Connection>(getConnectionToken());
   const httpServer = app.getHttpServer();
   const userTestManger = new UsersTestManager(app);
   const commentsTestManager = new CommentsTestManager(app);
   const postsTestManager = new PostsTestManager(app);
   const blogsTestManager = new BlogsTestManager(app);
   const sessionTestManager = new SessionsTestManager(app);
+  const questionsTestManager = new QuestionsTestManager(app);
+  const gamesTestManager = new GamesTestManager(app);
 
-  await deleteAllData(app);
+  //await deleteAllData(app);
 
   return {
     app,
-    databaseConnection,
+    //databaseConnection,
     httpServer,
     userTestManger,
     commentsTestManager,
     postsTestManager,
     blogsTestManager,
     sessionTestManager,
+    questionsTestManager,
+    gamesTestManager,
   };
 };

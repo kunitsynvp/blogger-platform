@@ -11,18 +11,21 @@ import {
 } from '../../../../src/modules/user-accounts/constants/jwt-tokens-inject-constants';
 import { UsersRepository } from '../../../../src/modules/user-accounts/infrastructure/users-repository';
 import { User } from '../../../../src/modules/user-accounts/domain/user/user.entity';
+import { SessionsRepository } from '../../../../src/modules/user-accounts/infrastructure/sessions/sessions-repository';
 
 
 export class UsersTestManager {
   private readonly BasicAuthString: string = 'Basic YWRtaW46cXdlcnR5';
 
   private usersRepository: UsersRepository;
+  private sessionsRepository: SessionsRepository;
   private commandBus: CommandBus;
   private jwtAccessTokenService: JwtService
   private jwtRefreshTokenService: JwtService
 
   constructor(private app: INestApplication) {
     this.usersRepository = this.app.get<UsersRepository>(UsersRepository);
+    this.sessionsRepository = this.app.get<SessionsRepository>(SessionsRepository);
     this.commandBus = this.app.get<CommandBus>(CommandBus);
     this.jwtAccessTokenService = this.app.get<JwtService>(ACCESS_TOKEN_INJECT_TOKEN)
     this.jwtRefreshTokenService = this.app.get<JwtService>(REFRESH_TOKEN_INJECT_TOKEN)
@@ -56,7 +59,7 @@ export class UsersTestManager {
     const users = [] as UsersViewDto[];
     for (let i = 0; i < count; i++) {
       const res = await request(this.app.getHttpServer())
-        .post('/users')
+        .post('/sa/users')
         .set('Authorization', this.BasicAuthString)
         .send({
           login: `newLogin${i}`,
@@ -76,7 +79,7 @@ export class UsersTestManager {
       let password = `newPassword${i}`;
       let email = `newEmail${i}@gmail.com`;
       const createUserResponse = await request(this.app.getHttpServer())
-        .post('/users')
+        .post('/sa/users')
         .set('Authorization', this.BasicAuthString)
         .send({
           login: login,
@@ -129,6 +132,7 @@ export class UsersTestManager {
 
     const user = await this.usersRepository.findByLoginOrEmail(login);
     expect(user).not.toBeNull();
+
 
     return { accessToken: response.body.accessToken,refreshToken: refreshToken, user: user! };
   }

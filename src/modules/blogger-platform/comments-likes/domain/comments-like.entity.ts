@@ -27,7 +27,7 @@ export class CommentLike {
   @Column()
   commentId: number
 
-  @Column({ enum: LikeStatus})
+  @Column({type: 'varchar', enum: LikeStatus})
   status: LikeStatus;
 
   @Column({type: 'timestamp without time zone'})

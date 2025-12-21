@@ -1,10 +1,10 @@
-import { QuestionDBRaw } from '../../infrastructure/questions.query.repository';
+import { QuestionDBRaw } from '../../infrastructure/questions/questions.query.repository';
 
 export class QuestionViewDto {
   id: string;
   body: string;
   correctAnswers: string[];
-  isPublished: boolean;
+  published: boolean;
   createdAt: string;
   updatedAt: string;
 
@@ -14,9 +14,9 @@ export class QuestionViewDto {
     dto.id = question.id.toString()
     dto.body = question.body
     dto.correctAnswers = question.correctAnswers
-    dto.isPublished = question.isPublished
+    dto.published = question.isPublished
     dto.createdAt = question.createdAt.toISOString()
-    dto.updatedAt = question.updatedAt.toISOString()
+    dto.updatedAt = question.updatedAt ? question.updatedAt.toISOString() : question.updatedAt
 
     return dto
   }

@@ -1,8 +1,17 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { questionsDbConstraints } from './constraints/questions-constraints';
-import { CreateQuestionInputDto } from '../../api/input-dto/create-question-input-dto';
+import { CreateQuestionInputDto } from '../../api/input-dto/questions/create-question-input-dto';
 import { DomainException } from '../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../core/exceptions/domain-exception-codes';
+import { UpdateQuestionInputDto } from '../../api/input-dto/questions/update-question-input-dto';
+import { Answer } from '../answers/answers.entity';
+import { GameQuestion } from '../games-questions/games-questions.entity';
 
 @Entity()
 export class Question {
@@ -22,30 +31,47 @@ export class Question {
   @Column({ type: 'boolean' })
   isPublished: boolean;
 
-  @Column({ type: 'timestamp without time zone' })
+  @OneToMany(() => Answer, (answer) => answer.question)
+  answers: Answer[];
+
+  @OneToMany(() => GameQuestion, (gameQuestion) => gameQuestion.question)
+  gameQuestions: GameQuestion[];
+
+  @CreateDateColumn({ type: 'timestamp without time zone' })
   createdAt: Date;
 
-  @Column({ type: 'timestamp without time zone' })
-  updatedAt: Date;
+  @Column({ type: 'timestamp without time zone', nullable: true })
+  updatedAt: Date | null;
 
   static createQuestion(dto: CreateQuestionInputDto): Question {
     const newQuestion = new Question();
     newQuestion.body = dto.body;
     newQuestion.correctAnswers = dto.correctAnswers;
-    newQuestion.isPublished = false
-    newQuestion.createdAt = new Date();
-    //TODO it may be invalid logic, possibly fix in the future
-    newQuestion.updatedAt = new Date();
+    newQuestion.isPublished = false;
+    newQuestion.updatedAt = null;
 
-    newQuestion.validate()
+    newQuestion.validate();
     return newQuestion;
   }
   validate() {
     if (this.body.length <= 10 && this.body.length >= 500) {
       throw new DomainException({
         code: DomainExceptionCode.ValidationError,
-        message: "Validation in domain failed" ,
-        field: 'body'});
+        message: 'Validation in domain failed',
+        field: 'body',
+      });
     }
+  }
+  changePublishStatus(newPublishStatus: boolean) {
+    this.isPublished = newPublishStatus;
+    this.updatedAt = new Date();
+    return this;
+  }
+  updateQuestion(dto: UpdateQuestionInputDto) {
+    this.body = dto.body;
+    this.correctAnswers = dto.correctAnswers;
+    this.updatedAt = new Date();
+    this.validate();
+    return this;
   }
 }

@@ -434,7 +434,7 @@ describe('Comments flow (e2e) tests', () => {
       const comment = await commentsTestManager.createCommentInForPost(
         'newContentForComment',
         accessToken,
-        user._id.toString(),
+        user.id,
         post.id,
       );
 
@@ -490,7 +490,7 @@ describe('Comments flow (e2e) tests', () => {
       const comment = await commentsTestManager.createCommentInForPost(
         'newContentForComment',
         accessToken,
-        user._id.toString(),
+        user.id,
         post.id,
       );
 
@@ -663,7 +663,7 @@ describe('Comments flow (e2e) tests', () => {
       const createdComment = await commentsTestManager.createCommentInForPost(
         defaults.content,
         accessToken,
-        createdUser._id.toString(),
+        createdUser.id,
         post.id,
       );
 
@@ -702,7 +702,7 @@ describe('Comments flow (e2e) tests', () => {
       const createdComment = await commentsTestManager.createCommentInForPost(
         defaults.content,
         accessTokenObj1.accessToken,
-        createdUser1._id.toString(),
+        createdUser1.id,
         post.id,
       );
 
@@ -727,7 +727,7 @@ describe('Comments flow (e2e) tests', () => {
       await commentsTestManager.createCommentInForPost(
         defaults.content,
         accessToken,
-        createdUser._id.toString(),
+        createdUser.id,
         post.id,
       );
       const invalidCommentId = new mongoose.Types.ObjectId(
@@ -754,7 +754,7 @@ describe('Comments flow (e2e) tests', () => {
       const createdComment = await commentsTestManager.createCommentInForPost(
         defaults.content,
         accessToken,
-        createdUser._id.toString(),
+        createdUser.id,
         post.id,
       );
       request(app.getHttpServer())
@@ -791,7 +791,7 @@ describe('Comments flow (e2e) tests', () => {
       await commentsTestManager.createCommentInForPost(
         defaults.content,
         accessToken,
-        createdUser._id.toString(),
+        createdUser.id,
         post.id,
       );
       const invalidCommentId = new mongoose.Types.ObjectId(
@@ -818,7 +818,7 @@ describe('Comments flow (e2e) tests', () => {
       await commentsTestManager.createCommentInForPost(
         defaults.content,
         accessToken,
-        createdUser._id.toString(),
+        createdUser.id,
         post.id,
       );
       const invalidCommentId = true;
@@ -843,7 +843,7 @@ describe('Comments flow (e2e) tests', () => {
       const createdComment = await commentsTestManager.createCommentInForPost(
         defaults.content,
         accessToken,
-        createdUser._id.toString(),
+        createdUser.id,
         post.id,
       );
       const invalidToken = 'someInvalidToken';
@@ -882,7 +882,7 @@ describe('Comments flow (e2e) tests', () => {
       const createdComment = await commentsTestManager.createCommentInForPost(
         defaults.content,
         accessTokenObj1.accessToken,
-        createdUser1._id.toString(),
+        createdUser1.id,
         post.id,
       );
 
@@ -907,7 +907,7 @@ describe('Comments flow (e2e) tests', () => {
       const createdComment = await commentsTestManager.createCommentInForPost(
         defaults.content,
         accessToken,
-        createdUser._id.toString(),
+        createdUser.id,
         post.id,
       );
       request(app.getHttpServer())

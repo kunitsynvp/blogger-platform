@@ -1,8 +1,5 @@
 import { CreateUserDomainDto } from './dto/user-domain-dto';
-import {
-  emailConstraints,
-  loginConstraints,
-} from './constraints/user-constraints';
+import { loginConstraints } from './constraints/user-constraints';
 import {
   Column,
   Entity,
@@ -16,6 +13,7 @@ import { PasswordRecovery } from './password-recovery.entity';
 import { Comment } from '../../../blogger-platform/comments/domain/comment.entity';
 import { CommentLike } from '../../../blogger-platform/comments-likes/domain/comments-like.entity';
 import { PostLike } from '../../../blogger-platform/posts-likes/domain/posts-like.entity';
+import { Player } from '../../../quiz/domain/players/players.entity';
 
 @Entity()
 export class User {
@@ -64,6 +62,9 @@ export class User {
 
   @OneToMany(() => PostLike, (pl) => pl.user)
   postLikes: PostLike[];
+
+  @OneToMany(() => Player, (player) => player.user)
+  players: Player[];
 
   static createUser(dto: CreateUserDomainDto): User {
     const user = new User();

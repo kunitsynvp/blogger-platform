@@ -27,7 +27,7 @@ export class PostLike {
   @Column({type: 'int'})
   userId: number;
 
-  @Column({enum: LikeStatus})
+  @Column({type: 'varchar', enum: LikeStatus})
   likeStatus: LikeStatus;
 
   @Column({type: 'timestamp without time zone'})

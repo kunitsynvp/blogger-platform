@@ -48,7 +48,7 @@ import { QuizModule } from './modules/quiz/quiz.module';
           database: coreConfig.dbName,
           autoLoadEntities: coreConfig.dbAutoLoadEntities,
           synchronize: coreConfig.dbSynchronize,
-          logging: true,
+          logging: coreConfig.isLoggingOn,
           namingStrategy: typeORMNamingStrategy
         } as TypeOrmModuleAsyncOptions
       },
